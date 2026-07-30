@@ -1,0 +1,227 @@
+[
+  {
+    "id": "p1",
+    "slug": "wireless-earbuds-pro",
+    "name": "Wireless Earbuds Pro",
+    "category": "Electronics",
+    "price": 1499,
+    "compareAtPrice": 2999,
+    "images": [
+      "https://picsum.photos/seed/earbuds1/600/600",
+      "https://picsum.photos/seed/earbuds2/600/600"
+    ],
+    "description": "True wireless earbuds with active noise cancellation, 30-hour battery life with charging case, and touch controls.",
+    "rating": 4.5,
+    "reviewCount": 128,
+    "stock": 42,
+    "tags": [
+      "trending",
+      "featured"
+    ]
+  },
+  {
+    "id": "p2",
+    "slug": "smart-fitness-band",
+    "name": "Smart Fitness Band",
+    "category": "Electronics",
+    "price": 999,
+    "compareAtPrice": 1799,
+    "images": [
+      "https://picsum.photos/seed/fitband1/600/600",
+      "https://picsum.photos/seed/fitband2/600/600"
+    ],
+    "description": "Track heart rate, steps, sleep, and SpO2. Water-resistant with 7-day battery life and smartphone notifications.",
+    "rating": 4.2,
+    "reviewCount": 84,
+    "stock": 60,
+    "tags": [
+      "featured"
+    ]
+  },
+  {
+    "id": "p3",
+    "slug": "portable-blender-bottle",
+    "name": "Portable USB Blender Bottle",
+    "category": "Home & Kitchen",
+    "price": 799,
+    "compareAtPrice": 1299,
+    "images": [
+      "https://picsum.photos/seed/blender1/600/600",
+      "https://picsum.photos/seed/blender2/600/600"
+    ],
+    "description": "Rechargeable personal blender for smoothies and shakes on the go. USB-C charging, 6 blades, 400ml capacity.",
+    "rating": 4.3,
+    "reviewCount": 56,
+    "stock": 35,
+    "tags": [
+      "trending"
+    ]
+  },
+  {
+    "id": "p4",
+    "slug": "led-galaxy-projector",
+    "name": "LED Galaxy Star Projector",
+    "category": "Home & Kitchen",
+    "price": 649,
+    "compareAtPrice": 1199,
+    "images": [
+      "https://picsum.photos/seed/galaxy1/600/600",
+      "https://picsum.photos/seed/galaxy2/600/600"
+    ],
+    "description": "Nebula star projector with remote control, Bluetooth speaker, and 10 lighting modes for bedroom ambience.",
+    "rating": 4.6,
+    "reviewCount": 203,
+    "stock": 75,
+    "tags": [
+      "trending",
+      "featured"
+    ]
+  },
+  {
+    "id": "p5",
+    "slug": "minimalist-canvas-backpack",
+    "name": "Minimalist Canvas Backpack",
+    "category": "Fashion",
+    "price": 1199,
+    "compareAtPrice": 1999,
+    "images": [
+      "https://picsum.photos/seed/backpack1/600/600",
+      "https://picsum.photos/seed/backpack2/600/600"
+    ],
+    "description": "Water-resistant canvas backpack with laptop compartment, ideal for daily commute and travel.",
+    "rating": 4.4,
+    "reviewCount": 97,
+    "stock": 50,
+    "tags": [
+      "featured"
+    ]
+  },
+  {
+    "id": "p6",
+    "slug": "oversized-hoodie-unisex",
+    "name": "Oversized Fleece Hoodie",
+    "category": "Fashion",
+    "price": 899,
+    "compareAtPrice": 1499,
+    "images": [
+      "https://picsum.photos/seed/hoodie1/600/600",
+      "https://picsum.photos/seed/hoodie2/600/600"
+    ],
+    "description": "Premium heavyweight fleece hoodie, unisex fit, available in multiple colors.",
+    "rating": 4.1,
+    "reviewCount": 41,
+    "stock": 90,
+    "tags": []
+  },
+  {
+    "id": "p7",
+    "slug": "led-makeup-mirror",
+    "name": "LED Makeup Mirror with Lights",
+    "category": "Beauty",
+    "price": 1099,
+    "compareAtPrice": 1899,
+    "images": [
+      "https://picsum.photos/seed/mirror1/600/600",
+      "https://picsum.photos/seed/mirror2/600/600"
+    ],
+    "description": "Vanity mirror with adjustable brightness LED lights, USB rechargeable, 3 color modes.",
+    "rating": 4.7,
+    "reviewCount": 156,
+    "stock": 28,
+    "tags": [
+      "trending",
+      "featured"
+    ]
+  },
+  {
+    "id": "p8",
+    "slug": "jade-facial-roller-set",
+    "name": "Jade Facial Roller & Gua Sha Set",
+    "category": "Beauty",
+    "price": 399,
+    "compareAtPrice": 799,
+    "images": [
+      "https://picsum.photos/seed/jade1/600/600",
+      "https://picsum.photos/seed/jade2/600/600"
+    ],
+    "description": "Natural jade roller and gua sha stone set for facial massage, reduces puffiness and improves circulation.",
+    "rating": 4.3,
+    "reviewCount": 63,
+    "stock": 110,
+    "tags": []
+  },
+  {
+    "id": "p9",
+    "slug": "resistance-bands-set",
+    "name": "Resistance Bands Set (5-Pack)",
+    "category": "Fitness",
+    "price": 599,
+    "compareAtPrice": 999,
+    "images": [
+      "https://picsum.photos/seed/bands1/600/600",
+      "https://picsum.photos/seed/bands2/600/600"
+    ],
+    "description": "Set of 5 latex resistance bands with varying resistance levels, includes carry bag and workout guide.",
+    "rating": 4.5,
+    "reviewCount": 112,
+    "stock": 80,
+    "tags": [
+      "featured"
+    ]
+  },
+  {
+    "id": "p10",
+    "slug": "adjustable-yoga-mat",
+    "name": "Premium Non-Slip Yoga Mat",
+    "category": "Fitness",
+    "price": 899,
+    "compareAtPrice": 1499,
+    "images": [
+      "https://picsum.photos/seed/yoga1/600/600",
+      "https://picsum.photos/seed/yoga2/600/600"
+    ],
+    "description": "Extra thick 8mm non-slip yoga mat with carry strap, eco-friendly TPE material.",
+    "rating": 4.4,
+    "reviewCount": 78,
+    "stock": 65,
+    "tags": []
+  },
+  {
+    "id": "p11",
+    "slug": "mini-drone-camera",
+    "name": "Mini Drone with HD Camera",
+    "category": "Electronics",
+    "price": 2499,
+    "compareAtPrice": 3999,
+    "images": [
+      "https://picsum.photos/seed/drone1/600/600",
+      "https://picsum.photos/seed/drone2/600/600"
+    ],
+    "description": "Foldable mini drone with 1080p HD camera, altitude hold, and one-key takeoff/landing. Great for beginners.",
+    "rating": 4,
+    "reviewCount": 34,
+    "stock": 20,
+    "tags": [
+      "trending"
+    ]
+  },
+  {
+    "id": "p12",
+    "slug": "kids-building-blocks",
+    "name": "Educational Building Blocks Set",
+    "category": "Toys",
+    "price": 799,
+    "compareAtPrice": 1299,
+    "images": [
+      "https://picsum.photos/seed/blocks1/600/600",
+      "https://picsum.photos/seed/blocks2/600/600"
+    ],
+    "description": "300-piece STEM building blocks set compatible with major brands, boosts creativity and motor skills.",
+    "rating": 4.6,
+    "reviewCount": 145,
+    "stock": 55,
+    "tags": [
+      "featured"
+    ]
+  }
+]
