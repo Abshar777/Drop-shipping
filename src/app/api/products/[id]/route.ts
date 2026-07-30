@@ -1,7 +1,12 @@
 import { NextResponse } from "next/server";
 import { getProducts, saveProducts } from "@/lib/products";
+import { isAdminAuthenticated } from "@/lib/require-admin";
 
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  if (!(await isAdminAuthenticated())) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const { id } = await params;
   const body = await request.json();
   const products = await getProducts();
@@ -25,6 +30,10 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 }
 
 export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  if (!(await isAdminAuthenticated())) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const { id } = await params;
   const products = await getProducts();
   const filtered = products.filter((p) => p.id !== id);

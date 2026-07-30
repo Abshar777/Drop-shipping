@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getProducts, saveProducts } from "@/lib/products";
+import { isAdminAuthenticated } from "@/lib/require-admin";
 import type { Product } from "@/lib/types";
 
 export async function GET() {
@@ -8,6 +9,10 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  if (!(await isAdminAuthenticated())) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const body = await request.json();
   const products = await getProducts();
 

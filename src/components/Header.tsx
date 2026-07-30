@@ -1,14 +1,36 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useCart } from "@/lib/cart-context";
 
 const CATEGORIES = ["Electronics", "Home & Kitchen", "Fashion", "Beauty", "Fitness", "Toys"];
 
+type CurrentUser = { id: string; name: string; email: string };
+
 export default function Header() {
   const { itemCount } = useCart();
+  const router = useRouter();
   const [query, setQuery] = useState("");
+  const [user, setUser] = useState<CurrentUser | null>(null);
+  const [userLoaded, setUserLoaded] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/auth/me")
+      .then((res) => res.json())
+      .then((data) => {
+        setUser(data.user);
+        setUserLoaded(true);
+      });
+  }, []);
+
+  async function handleLogout() {
+    await fetch("/api/auth/logout", { method: "POST" });
+    setUser(null);
+    router.push("/");
+    router.refresh();
+  }
 
   return (
     <header className="sticky top-0 z-50 bg-white border-b border-gray-200">
@@ -38,20 +60,49 @@ export default function Header() {
             </button>
           </form>
 
-          <Link
-            href="/cart"
-            className="relative flex items-center gap-1 text-sm font-medium text-gray-700 hover:text-orange-600 shrink-0"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-6 h-6">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 1.907-4.708 2.322-7.184a1.125 1.125 0 00-1.107-1.316H5.106M7.5 14.25L5.106 5.25M9.75 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm9 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
-            </svg>
-            {itemCount > 0 && (
-              <span className="absolute -top-2 -right-3 bg-orange-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                {itemCount}
-              </span>
+          <div className="flex items-center gap-4 shrink-0">
+            {userLoaded && (
+              <div className="hidden sm:flex items-center gap-3 text-sm">
+                {user ? (
+                  <>
+                    <span className="text-gray-600">
+                      Hi, <span className="font-medium text-gray-900">{user.name}</span>
+                    </span>
+                    <button onClick={handleLogout} className="text-gray-500 hover:text-orange-600 font-medium">
+                      Log Out
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <Link href="/login" className="text-gray-600 hover:text-orange-600 font-medium">
+                      Log In
+                    </Link>
+                    <Link
+                      href="/signup"
+                      className="bg-orange-600 text-white font-medium px-3 py-1.5 rounded-md hover:bg-orange-700"
+                    >
+                      Sign Up
+                    </Link>
+                  </>
+                )}
+              </div>
             )}
-            <span className="hidden sm:inline">Cart</span>
-          </Link>
+
+            <Link
+              href="/cart"
+              className="relative flex items-center gap-1 text-sm font-medium text-gray-700 hover:text-orange-600"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-6 h-6">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 1.907-4.708 2.322-7.184a1.125 1.125 0 00-1.107-1.316H5.106M7.5 14.25L5.106 5.25M9.75 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm9 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
+              </svg>
+              {itemCount > 0 && (
+                <span className="absolute -top-2 -right-3 bg-orange-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                  {itemCount}
+                </span>
+              )}
+              <span className="hidden sm:inline">Cart</span>
+            </Link>
+          </div>
         </div>
 
         <nav className="flex items-center gap-6 h-11 overflow-x-auto text-sm">

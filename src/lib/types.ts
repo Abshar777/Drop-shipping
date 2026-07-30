@@ -32,3 +32,20 @@ export type Order = {
   createdAt: string;
   status: "pending" | "processing" | "shipped" | "delivered";
 };
+
+export type User = {
+  id: string;
+  name: string;
+  email: string;
+  passwordHash: string;
+  createdAt: string;
+};
+
+export type PublicUser = Omit<User, "passwordHash">;
+
+export type Admin = {
+  id: string;
+  name: string;
+  email: string;
+  passwordHash: string;
+};

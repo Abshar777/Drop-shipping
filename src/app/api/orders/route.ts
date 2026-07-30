@@ -1,9 +1,14 @@
 import { NextResponse } from "next/server";
 import { addOrder, getOrders } from "@/lib/orders";
 import { getProductById } from "@/lib/products";
+import { isAdminAuthenticated } from "@/lib/require-admin";
 import type { Order } from "@/lib/types";
 
 export async function GET() {
+  if (!(await isAdminAuthenticated())) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const orders = await getOrders();
   return NextResponse.json(orders);
 }

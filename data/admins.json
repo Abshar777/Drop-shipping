@@ -1,0 +1,8 @@
+[
+  {
+    "id": "admin1",
+    "name": "Store Admin",
+    "email": "admin@anyitems.in",
+    "passwordHash": "$2b$10$E6URbCyYVQjQ7s/NHzSayeMuAUnbXpioGo56pG02urPFjQ2nUf87i"
+  }
+]

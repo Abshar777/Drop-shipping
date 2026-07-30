@@ -36,7 +36,7 @@ export default function CheckoutPage() {
 
   const subtotal = cartRows.reduce((sum, row) => sum + row.product.price * row.item.quantity, 0);
 
-  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+  function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
     setForm({ ...form, [e.target.name]: e.target.value });
   }
 
