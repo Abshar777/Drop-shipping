@@ -17,3 +17,15 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Hide scrollbars everywhere while keeping scroll behaviour */
+* {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* legacy Edge/IE */
+}
+
+*::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Edge */
+  width: 0;
+  height: 0;
+}
