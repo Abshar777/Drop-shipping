@@ -6,7 +6,8 @@
         "primary": "#ff6a00",
         "primaryHover": "#ff6a00",
         "accent": "#ffc370"
-      }
+      },
+      "corners": "soft"
     }
   }
 }
