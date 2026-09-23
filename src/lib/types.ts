@@ -60,4 +60,6 @@ export type Category = {
   order: number;
   /** Where the entry came from: your own store, or a catalogue imported for reference. */
   source?: "store" | "meesho" | "noon";
+  /** Icon shown in the category bar. Omitted = guessed from the name (see lib/category-icons). */
+  icon?: string;
 };

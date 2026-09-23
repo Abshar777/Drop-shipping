@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCategories, saveCategories } from "@/lib/categories";
 import { descendantIds } from "@/lib/category-tree";
+import { isCategoryIcon } from "@/lib/category-icons";
 import { getProducts } from "@/lib/products";
 import { isAdminAuthenticated } from "@/lib/require-admin";
 
@@ -27,6 +28,13 @@ export async function PATCH(request: Request, { params }: Params) {
     const name = String(body.name).trim();
     if (!name) return NextResponse.json({ error: "Name cannot be empty" }, { status: 400 });
     current.name = name;
+  }
+
+  if (body.icon !== undefined) {
+    // Empty string clears the choice so the icon is guessed from the name again.
+    if (body.icon === "" || body.icon === null) delete current.icon;
+    else if (isCategoryIcon(body.icon)) current.icon = body.icon;
+    else return NextResponse.json({ error: "Unknown icon" }, { status: 400 });
   }
 
   if (body.enabled !== undefined) {

@@ -3,6 +3,8 @@ import { getProducts } from "@/lib/products";
 import { getCategories } from "@/lib/categories";
 import { buildCategoryTree } from "@/lib/category-tree";
 import { getT } from "@/lib/i18n/server";
+import { resolveCategoryIcon } from "@/lib/category-icons";
+import CategoryIcon from "@/components/CategoryIcon";
 import ProductCard from "@/components/ProductCard";
 
 export default async function Home() {
@@ -34,9 +36,10 @@ export default async function Home() {
               <Link
                 key={cat.id}
                 href={`/products?category=${encodeURIComponent(cat.id)}`}
-                className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center text-sm font-medium text-gray-700 hover:border-orange-400 hover:text-orange-600"
+                className="bg-gray-50 border border-gray-200 rounded-lg p-4 flex flex-col items-center gap-2 text-center text-sm font-medium text-gray-700 hover:border-orange-400 hover:text-orange-600"
               >
-                {cat.name}
+                <CategoryIcon name={resolveCategoryIcon(cat)} className="w-10 h-10" />
+                <span className="leading-tight">{cat.name}</span>
               </Link>
             ))}
           </div>

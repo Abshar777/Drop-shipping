@@ -7,6 +7,8 @@ import { useCart } from "@/lib/cart-context";
 import { useT } from "@/lib/i18n/client";
 import { fmt } from "@/lib/i18n";
 import type { CategoryNode } from "@/lib/category-tree";
+import { resolveCategoryIcon } from "@/lib/category-icons";
+import CategoryIcon from "@/components/CategoryIcon";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 
 type CurrentUser = { id: string; name: string; email: string };
@@ -117,16 +119,24 @@ export default function Header() {
           </div>
         </div>
 
-        {/* Category nav: scrolls on small screens; on md+ it wraps and shows hover menus. */}
-        <nav className="flex items-center gap-6 min-h-11 overflow-x-auto md:overflow-visible md:flex-wrap text-sm">
-          <LanguageSwitcher className="sm:hidden shrink-0" />
+        {/* Category bar: icon above name. Scrolls on small screens; wraps and shows hover menus on md+. */}
+        <nav className="flex items-start gap-1 sm:gap-2 overflow-x-auto md:overflow-visible md:flex-wrap md:justify-center py-1.5 text-sm">
+          <LanguageSwitcher className="sm:hidden shrink-0 self-center me-2" />
+          {/* Fixed-width tiles that scroll on small screens; on md+ they flex between 4.5rem and 6.5rem so a full bar fits one row. */}
           {categories.map((cat) => (
-            <div key={cat.id} className="group relative shrink-0 py-2.5">
+            <div
+              key={cat.id}
+              className="group relative shrink-0 w-[4.75rem] md:w-auto md:shrink md:flex-1 md:min-w-[4.5rem] md:max-w-[6.5rem]"
+            >
               <Link
                 href={`/products?category=${encodeURIComponent(cat.id)}`}
-                className="whitespace-nowrap text-gray-600 hover:text-orange-600 font-medium"
+                className="flex flex-col items-center gap-1 w-full px-1 py-1.5 rounded-lg text-gray-800 hover:bg-orange-50 hover:text-orange-700"
+                title={cat.name}
               >
-                {cat.name}
+                <CategoryIcon name={resolveCategoryIcon(cat)} className="w-9 h-9 sm:w-11 sm:h-11" />
+                <span className="w-full text-center text-[11px] sm:text-sm font-medium leading-tight truncate">
+                  {cat.name}
+                </span>
               </Link>
 
               {cat.children.length > 0 && (

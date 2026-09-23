@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { formatPrice } from "@/lib/format";
 import { buildCategoryTree, categoryPath, flattenTree, type CategoryNode } from "@/lib/category-tree";
+import { CATEGORY_ICONS, guessCategoryIcon, isCategoryIcon, resolveCategoryIcon } from "@/lib/category-icons";
+import CategoryIcon from "@/components/CategoryIcon";
 import type { Product, Order, Category } from "@/lib/types";
 
 const EMPTY_FORM = {
@@ -509,6 +511,7 @@ export default function AdminDashboard({ adminName }: { adminName: string }) {
                 <thead className="bg-gray-50 text-left text-gray-500">
                   <tr>
                     <th className="px-4 py-2">Category</th>
+                    <th className="px-3 py-2">Icon</th>
                     <th className="px-3 py-2 whitespace-nowrap">Products</th>
                     <th className="px-3 py-2">Source</th>
                     <th className="px-3 py-2">Visible</th>
@@ -551,6 +554,27 @@ export default function AdminDashboard({ adminName }: { adminName: string }) {
                               )}
                             </div>
                           </div>
+                        </td>
+                        <td className="px-3 py-1.5">
+                          {!node.parentId && (
+                            <div className="flex items-center gap-1.5">
+                              <CategoryIcon name={resolveCategoryIcon(node)} className="w-7 h-7 text-gray-700 shrink-0" />
+                              <select
+                                value={isCategoryIcon(node.icon) ? node.icon : ""}
+                                onChange={(e) => patchCategory(node.id, { icon: e.target.value })}
+                                disabled={busy}
+                                className="border border-gray-300 rounded px-1 py-0.5 text-xs bg-white"
+                                title="Icon shown in the category bar"
+                              >
+                                <option value="">Auto ({guessCategoryIcon(node.name)})</option>
+                                {CATEGORY_ICONS.map((icon) => (
+                                  <option key={icon} value={icon}>
+                                    {icon}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                          )}
                         </td>
                         <td className="px-3 py-1.5 text-gray-600 text-center">{productCount.get(node.id) ?? ""}</td>
                         <td className="px-3 py-1.5">
