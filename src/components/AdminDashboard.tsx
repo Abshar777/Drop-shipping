@@ -9,6 +9,9 @@ import CategoryIcon from "@/components/CategoryIcon";
 import ThemeSettings from "@/components/ThemeSettings";
 import AdminUsers from "@/components/AdminUsers";
 import ProductImageUploader from "@/components/ProductImageUploader";
+import RichTextEditor from "@/components/RichTextEditor";
+import { PRODUCT_LAYOUTS } from "@/lib/product-layouts";
+import type { ProductLayout } from "@/lib/types";
 import type { Product, Order, Category } from "@/lib/types";
 
 const EMPTY_FORM = {
@@ -19,6 +22,7 @@ const EMPTY_FORM = {
   stock: "",
   description: "",
   images: [] as string[],
+  layout: "default" as ProductLayout,
 };
 
 type Tab = "products" | "categories" | "orders" | "theme" | "admins";
@@ -26,6 +30,59 @@ type Tab = "products" | "categories" | "orders" | "theme" | "admins";
 const JSON_HEADERS = { "Content-Type": "application/json" };
 
 const SOURCE_LABEL: Record<string, string> = { store: "Store", meesho: "Meesho", noon: "noon" };
+
+/** Tiny wireframe of each product page layout for the picker. */
+function LayoutSketch({ layout }: { layout: ProductLayout }) {
+  const box = "rounded-sm bg-gray-300";
+  if (layout === "amazon") {
+    return (
+      <div className="h-16 grid grid-cols-12 gap-1 p-1 bg-white border border-gray-200 rounded">
+        <div className={`col-span-5 ${box}`} />
+        <div className="col-span-4 flex flex-col gap-1">
+          <div className={`h-2 ${box}`} />
+          <div className="h-1.5 w-2/3 rounded-sm bg-[#CC0C39]" />
+          <div className={`h-1 ${box}`} />
+          <div className={`h-1 ${box}`} />
+        </div>
+        <div className="col-span-3 border border-gray-300 rounded p-1 flex flex-col gap-1">
+          <div className={`h-1.5 ${box}`} />
+          <div className="h-1.5 rounded-full bg-[#FFD814]" />
+          <div className="h-1.5 rounded-full bg-[#FFA41C]" />
+        </div>
+      </div>
+    );
+  }
+  if (layout === "flipkart") {
+    return (
+      <div className="h-16 grid grid-cols-12 gap-1 p-1 bg-[#f1f3f6] border border-gray-200 rounded">
+        <div className="col-span-5 flex flex-col gap-1">
+          <div className={`flex-1 bg-white border border-gray-300 rounded-sm`} />
+          <div className="flex gap-1">
+            <div className="flex-1 h-2 bg-[#ff9f00]" />
+            <div className="flex-1 h-2 bg-[#fb641b]" />
+          </div>
+        </div>
+        <div className="col-span-7 bg-white p-1 flex flex-col gap-1">
+          <div className={`h-1.5 w-3/4 ${box}`} />
+          <div className="h-1.5 w-6 rounded-sm bg-[#388e3c]" />
+          <div className={`h-1 ${box}`} />
+          <div className={`h-1 w-2/3 ${box}`} />
+        </div>
+      </div>
+    );
+  }
+  return (
+    <div className="h-16 grid grid-cols-2 gap-1 p-1 bg-white border border-gray-200 rounded">
+      <div className="rounded-md bg-orange-100" />
+      <div className="flex flex-col gap-1">
+        <div className={`h-2 ${box}`} />
+        <div className={`h-1 w-2/3 ${box}`} />
+        <div className={`h-1 ${box}`} />
+        <div className="h-2 w-2/3 rounded-full bg-orange-500 mt-auto" />
+      </div>
+    </div>
+  );
+}
 
 export default function AdminDashboard({ adminId, adminName }: { adminId: string; adminName: string }) {
   const router = useRouter();
@@ -234,6 +291,7 @@ export default function AdminDashboard({ adminId, adminName }: { adminId: string
       stock: String(product.stock),
       description: product.description,
       images: product.images,
+      layout: product.layout ?? "default",
     });
     setFormError("");
     setShowForm(true);
@@ -256,6 +314,7 @@ export default function AdminDashboard({ adminId, adminName }: { adminId: string
       stock: form.stock,
       description: form.description,
       images: form.images,
+      layout: form.layout,
     };
 
     const res = editingId
@@ -387,18 +446,35 @@ export default function AdminDashboard({ adminId, adminName }: { adminId: string
               <div className="sm:col-span-2">
                 <div className="flex items-baseline justify-between mb-1.5">
                   <p className="text-sm font-medium text-gray-700">Description</p>
-                  <span className="text-xs text-gray-400">{form.description.length} characters</span>
+                  <span className="text-xs text-gray-400">Select text, then use the toolbar for bold, headings, lists, and size</span>
                 </div>
-                <textarea
-                  placeholder={
-                    "Describe the product: what it is, key features, sizes or colours, what is in the box.\n" +
-                    "Press Enter for a new line; line breaks are kept on the product page."
-                  }
-                  rows={6}
+                <RichTextEditor
                   value={form.description}
-                  onChange={(e) => setForm({ ...form, description: e.target.value })}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm leading-relaxed"
+                  onChange={(html) => setForm((f) => ({ ...f, description: html }))}
+                  placeholder="Describe the product: what it is, key features, sizes or colours, what is in the box. Bullet points become the highlights on Amazon and Flipkart style pages."
                 />
+              </div>
+              <div className="sm:col-span-2">
+                <p className="text-sm font-medium text-gray-700 mb-1.5">Product page style</p>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {PRODUCT_LAYOUTS.map((option) => {
+                    const selected = form.layout === option.id;
+                    return (
+                      <button
+                        key={option.id}
+                        type="button"
+                        onClick={() => setForm((f) => ({ ...f, layout: option.id }))}
+                        className={`text-left border rounded-lg p-3 transition-colors ${
+                          selected ? "border-orange-500 ring-2 ring-orange-200 bg-orange-50" : "border-gray-200 hover:border-gray-400 bg-white"
+                        }`}
+                      >
+                        <LayoutSketch layout={option.id} />
+                        <p className="mt-2 text-sm font-semibold text-gray-900">{option.name}</p>
+                        <p className="text-xs text-gray-500 leading-snug">{option.tagline}</p>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
               <div className="sm:col-span-2 flex gap-3">
                 <button

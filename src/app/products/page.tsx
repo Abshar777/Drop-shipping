@@ -4,6 +4,7 @@ import { getCategories } from "@/lib/categories";
 import { buildCategoryTree, categoryPath, descendantIds, type CategoryNode } from "@/lib/category-tree";
 import { getT } from "@/lib/i18n/server";
 import { fmt } from "@/lib/i18n";
+import { stripHtml } from "@/lib/html";
 import ProductCard from "@/components/ProductCard";
 
 type SearchParams = { category?: string; q?: string };
@@ -76,7 +77,7 @@ export default async function ProductsPage({
   if (q) {
     const query = q.toLowerCase();
     filtered = filtered.filter(
-      (p) => p.name.toLowerCase().includes(query) || p.description.toLowerCase().includes(query)
+      (p) => p.name.toLowerCase().includes(query) || stripHtml(p.description).toLowerCase().includes(query)
     );
   }
 

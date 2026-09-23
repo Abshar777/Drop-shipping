@@ -86,3 +86,16 @@ body {
   width: 0;
   height: 0;
 }
+
+/* Formatted product descriptions (admin toolbar output) and the editor itself. */
+.rich-text h2 { font-size: 1.25rem; font-weight: 700; margin: 0.75rem 0 0.35rem; }
+.rich-text h3 { font-size: 1.1rem; font-weight: 600; margin: 0.6rem 0 0.3rem; }
+.rich-text p, .rich-text div { margin: 0 0 0.5rem; }
+.rich-text ul { list-style: disc; padding-inline-start: 1.4rem; margin: 0 0 0.5rem; }
+.rich-text ol { list-style: decimal; padding-inline-start: 1.4rem; margin: 0 0 0.5rem; }
+.rich-text li { margin: 0.15rem 0; }
+.rich-text b, .rich-text strong { font-weight: 700; }
+.rich-text i, .rich-text em { font-style: italic; }
+.rich-text u { text-decoration: underline; }
+.rich-text > :last-child { margin-bottom: 0; }
+.rich-text[data-placeholder]:empty::before { content: attr(data-placeholder); color: #9ca3af; pointer-events: none; }

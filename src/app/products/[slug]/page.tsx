@@ -5,6 +5,9 @@ import { getT } from "@/lib/i18n/server";
 import { fmt } from "@/lib/i18n";
 import AddToCart from "@/components/AddToCart";
 import ProductCard from "@/components/ProductCard";
+import ProductDescription from "@/components/ProductDescription";
+import AmazonProductPage from "@/components/product-layouts/AmazonProductPage";
+import FlipkartProductPage from "@/components/product-layouts/FlipkartProductPage";
 
 export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -16,6 +19,10 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const related = allProducts
     .filter((p) => p.category === product.category && p.id !== product.id)
     .slice(0, 4);
+
+  // Per-product page design chosen in the admin.
+  if (product.layout === "amazon") return <AmazonProductPage product={product} related={related} t={t} />;
+  if (product.layout === "flipkart") return <FlipkartProductPage product={product} related={related} t={t} />;
 
   const discount = product.compareAtPrice
     ? Math.round(100 - (product.price / product.compareAtPrice) * 100)
@@ -74,7 +81,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             )}
           </p>
 
-          <p className="text-muted mt-4 leading-relaxed whitespace-pre-line">{product.description}</p>
+          <ProductDescription text={product.description} className="text-muted mt-4 leading-relaxed" />
 
           <div className="mt-6">
             <AddToCart productId={product.id} stock={product.stock} />

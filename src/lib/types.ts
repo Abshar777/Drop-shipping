@@ -1,3 +1,6 @@
+/** Which product page design a product uses. */
+export type ProductLayout = "default" | "amazon" | "flipkart";
+
 export type Product = {
   id: string;
   slug: string;
@@ -9,6 +12,8 @@ export type Product = {
   compareAtPrice?: number;
   images: string[];
   description: string;
+  /** Product page design; omitted = store theme. */
+  layout?: ProductLayout;
   rating: number;
   reviewCount: number;
   stock: number;

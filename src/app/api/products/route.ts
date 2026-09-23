@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { getProducts, saveProducts } from "@/lib/products";
 import { getCategoryById } from "@/lib/categories";
 import { isAdminAuthenticated } from "@/lib/require-admin";
+import { sanitizeHtml } from "@/lib/html";
+import { isProductLayout } from "@/lib/product-layouts";
 import type { Product } from "@/lib/types";
 
 export async function GET() {
@@ -43,7 +45,8 @@ export async function POST(request: Request) {
     price: Number(body.price),
     compareAtPrice: body.compareAtPrice ? Number(body.compareAtPrice) : undefined,
     images: body.images?.length ? body.images : ["https://picsum.photos/seed/" + slug + "/600/600"],
-    description: body.description || "",
+    description: sanitizeHtml(typeof body.description === "string" ? body.description : ""),
+    layout: isProductLayout(body.layout) && body.layout !== "default" ? body.layout : undefined,
     rating: 0,
     reviewCount: 0,
     stock: Number(body.stock) || 0,

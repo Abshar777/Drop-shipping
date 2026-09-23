@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import { getProducts, saveProducts } from "@/lib/products";
 import { getCategoryById } from "@/lib/categories";
 import { isAdminAuthenticated } from "@/lib/require-admin";
+import { sanitizeHtml } from "@/lib/html";
+import { isProductLayout } from "@/lib/product-layouts";
+import type { Product } from "@/lib/types";
 
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   if (!(await isAdminAuthenticated())) {
@@ -29,18 +32,26 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     }
   }
 
-  products[index] = {
-    ...products[index],
+  const current = products[index];
+  const updated: Product = {
+    ...current,
     ...body,
     ...categoryFields,
-    price: body.price !== undefined ? Number(body.price) : products[index].price,
-    compareAtPrice:
-      body.compareAtPrice !== undefined ? Number(body.compareAtPrice) : products[index].compareAtPrice,
-    stock: body.stock !== undefined ? Number(body.stock) : products[index].stock,
+    price: body.price !== undefined ? Number(body.price) : current.price,
+    compareAtPrice: body.compareAtPrice !== undefined ? Number(body.compareAtPrice) : current.compareAtPrice,
+    stock: body.stock !== undefined ? Number(body.stock) : current.stock,
+    description: body.description !== undefined ? sanitizeHtml(String(body.description)) : current.description,
+    layout:
+      body.layout !== undefined
+        ? isProductLayout(body.layout) && body.layout !== "default"
+          ? body.layout
+          : undefined
+        : current.layout,
   };
 
+  products[index] = updated;
   await saveProducts(products);
-  return NextResponse.json(products[index]);
+  return NextResponse.json(updated);
 }
 
 export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
