@@ -1,12 +1,14 @@
 import { notFound } from "next/navigation";
 import { getProductBySlug, getProducts } from "@/lib/products";
 import { formatPrice } from "@/lib/format";
+import { getT } from "@/lib/i18n/server";
+import { fmt } from "@/lib/i18n";
 import AddToCart from "@/components/AddToCart";
 import ProductCard from "@/components/ProductCard";
 
 export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const product = await getProductBySlug(slug);
+  const [product, { t }] = await Promise.all([getProductBySlug(slug), getT()]);
 
   if (!product) notFound();
 
@@ -48,7 +50,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           <div className="flex items-center gap-2 mt-2 text-sm">
             <span className="text-amber-500">{"★".repeat(Math.round(product.rating))}</span>
             <span className="text-gray-500">
-              {product.rating} ({product.reviewCount} reviews)
+              {fmt(t.product.reviews, { rating: product.rating, n: product.reviewCount })}
             </span>
           </div>
 
@@ -59,16 +61,16 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                 <span className="text-lg text-gray-400 line-through">
                   {formatPrice(product.compareAtPrice)}
                 </span>
-                <span className="text-sm font-semibold text-green-600">{discount}% off</span>
+                <span className="text-sm font-semibold text-green-600">{fmt(t.product.off, { n: discount })}</span>
               </>
             )}
           </div>
 
           <p className="text-sm mt-2">
             {product.stock > 0 ? (
-              <span className="text-green-600 font-medium">In Stock ({product.stock} available)</span>
+              <span className="text-green-600 font-medium">{fmt(t.product.inStock, { n: product.stock })}</span>
             ) : (
-              <span className="text-red-600 font-medium">Out of Stock</span>
+              <span className="text-red-600 font-medium">{t.product.outOfStock}</span>
             )}
           </p>
 
@@ -82,7 +84,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
       {related.length > 0 && (
         <section className="mt-14">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">You may also like</h2>
+          <h2 className="text-xl font-bold text-gray-900 mb-4">{t.product.related}</h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
             {related.map((p) => (
               <ProductCard key={p.id} product={p} />

@@ -2,10 +2,11 @@ import Link from "next/link";
 import { getProducts } from "@/lib/products";
 import { getCategories } from "@/lib/categories";
 import { buildCategoryTree } from "@/lib/category-tree";
+import { getT } from "@/lib/i18n/server";
 import ProductCard from "@/components/ProductCard";
 
 export default async function Home() {
-  const [products, allCategories] = await Promise.all([getProducts(), getCategories()]);
+  const [products, allCategories, { t }] = await Promise.all([getProducts(), getCategories(), getT()]);
   const featured = products.filter((p) => p.tags?.includes("featured"));
   const trending = products.filter((p) => p.tags?.includes("trending"));
 
@@ -15,23 +16,19 @@ export default async function Home() {
   return (
     <div className="max-w-7xl mx-auto px-4 py-6">
       <section className="rounded-2xl bg-gradient-to-r from-orange-600 to-amber-500 text-white px-6 py-12 sm:px-12 sm:py-16 mb-10">
-        <h1 className="text-3xl sm:text-4xl font-extrabold max-w-xl">
-          Trending finds, delivered to your door.
-        </h1>
-        <p className="mt-3 text-orange-50 max-w-lg">
-          Shop the best deals on electronics, home goods, fashion, and more &mdash; all in one place.
-        </p>
+        <h1 className="text-3xl sm:text-4xl font-extrabold max-w-xl">{t.home.heroTitle}</h1>
+        <p className="mt-3 text-orange-50 max-w-lg">{t.home.heroSubtitle}</p>
         <Link
           href="/products"
           className="inline-block mt-6 bg-white text-orange-700 font-semibold px-6 py-2.5 rounded-md hover:bg-orange-50"
         >
-          Shop Now
+          {t.home.shopNow}
         </Link>
       </section>
 
       {categories.length > 0 && (
         <section className="mb-10">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">Shop by Category</h2>
+          <h2 className="text-xl font-bold text-gray-900 mb-4">{t.home.shopByCategory}</h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
             {categories.map((cat) => (
               <Link
@@ -49,9 +46,9 @@ export default async function Home() {
       {trending.length > 0 && (
         <section className="mb-10">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-gray-900">Trending Now</h2>
+            <h2 className="text-xl font-bold text-gray-900">{t.home.trendingNow}</h2>
             <Link href="/products" className="text-sm text-orange-600 hover:underline">
-              View all
+              {t.common.viewAll}
             </Link>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
@@ -65,9 +62,9 @@ export default async function Home() {
       {featured.length > 0 && (
         <section className="mb-10">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-gray-900">Featured Products</h2>
+            <h2 className="text-xl font-bold text-gray-900">{t.home.featured}</h2>
             <Link href="/products" className="text-sm text-orange-600 hover:underline">
-              View all
+              {t.common.viewAll}
             </Link>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">

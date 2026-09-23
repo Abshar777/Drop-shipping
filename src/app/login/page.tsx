@@ -3,9 +3,11 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useT } from "@/lib/i18n/client";
 
 export default function LoginPage() {
   const router = useRouter();
+  const t = useT();
   const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -26,20 +28,20 @@ export default function LoginPage() {
       router.refresh();
     } else {
       const data = await res.json();
-      setError(data.error || "Something went wrong");
+      setError(data.error || t.auth.genericError);
       setSubmitting(false);
     }
   }
 
   return (
     <div className="max-w-sm mx-auto px-4 py-16">
-      <h1 className="text-2xl font-bold text-gray-900 mb-6 text-center">Log In</h1>
+      <h1 className="text-2xl font-bold text-gray-900 mb-6 text-center">{t.auth.loginTitle}</h1>
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         {error && <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2">{error}</p>}
         <input
           required
           type="email"
-          placeholder="Email"
+          placeholder={t.auth.email}
           value={form.email}
           onChange={(e) => setForm({ ...form, email: e.target.value })}
           className="border border-gray-300 rounded-md px-3 py-2 text-sm"
@@ -47,7 +49,7 @@ export default function LoginPage() {
         <input
           required
           type="password"
-          placeholder="Password"
+          placeholder={t.auth.password}
           value={form.password}
           onChange={(e) => setForm({ ...form, password: e.target.value })}
           className="border border-gray-300 rounded-md px-3 py-2 text-sm"
@@ -57,13 +59,13 @@ export default function LoginPage() {
           disabled={submitting}
           className="bg-orange-600 text-white font-semibold py-2.5 rounded-md hover:bg-orange-700 disabled:opacity-50"
         >
-          {submitting ? "Logging in..." : "Log In"}
+          {submitting ? t.auth.loggingIn : t.auth.loginTitle}
         </button>
       </form>
       <p className="text-sm text-gray-500 text-center mt-4">
-        Don&apos;t have an account?{" "}
+        {t.auth.noAccount}{" "}
         <Link href="/signup" className="text-orange-600 hover:underline">
-          Sign up
+          {t.auth.signupLink}
         </Link>
       </p>
     </div>

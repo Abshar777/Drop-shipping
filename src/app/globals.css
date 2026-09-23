@@ -15,7 +15,15 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  /*
+   * Inter first for Latin. Scripts Inter lacks (Devanagari, Arabic, Malayalam, Tamil) fall through
+   * to the matching Noto face. Family names are used directly rather than the next/font variables,
+   * because those variables append a synthesized local-Arial fallback that would otherwise capture
+   * Arabic text before the Noto font gets a chance. "Inter Fallback" stays at the end for load time.
+   */
+  font-family:
+    "Inter", "Noto Sans Devanagari", "Noto Sans Arabic", "Noto Sans Malayalam", "Noto Sans Tamil",
+    "Inter Fallback", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
 }
 
 /* Hide scrollbars everywhere while keeping scroll behaviour */

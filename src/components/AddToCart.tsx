@@ -3,9 +3,11 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/lib/cart-context";
+import { useT } from "@/lib/i18n/client";
 
 export default function AddToCart({ productId, stock }: { productId: string; stock: number }) {
   const { addItem } = useCart();
+  const t = useT();
   const router = useRouter();
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
@@ -25,7 +27,7 @@ export default function AddToCart({ productId, stock }: { productId: string; sto
     <div className="flex flex-col gap-3 max-w-sm">
       <div className="flex items-center gap-3">
         <label htmlFor="qty" className="text-sm font-medium text-gray-700">
-          Quantity
+          {t.product.quantity}
         </label>
         <select
           id="qty"
@@ -47,14 +49,14 @@ export default function AddToCart({ productId, stock }: { productId: string; sto
           disabled={stock === 0}
           className="flex-1 bg-orange-100 text-orange-700 font-semibold py-2.5 rounded-md hover:bg-orange-200 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {added ? "Added ✓" : "Add to Cart"}
+          {added ? t.product.added : t.product.addToCart}
         </button>
         <button
           onClick={handleBuyNow}
           disabled={stock === 0}
           className="flex-1 bg-orange-600 text-white font-semibold py-2.5 rounded-md hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Buy Now
+          {t.product.buyNow}
         </button>
       </div>
     </div>

@@ -2,6 +2,8 @@ import Link from "next/link";
 import { getProducts } from "@/lib/products";
 import { getCategories } from "@/lib/categories";
 import { buildCategoryTree, categoryPath, descendantIds, type CategoryNode } from "@/lib/category-tree";
+import { getT } from "@/lib/i18n/server";
+import { fmt } from "@/lib/i18n";
 import ProductCard from "@/components/ProductCard";
 
 type SearchParams = { category?: string; q?: string };
@@ -18,7 +20,7 @@ function CategoryList({
   depth?: number;
 }) {
   return (
-    <ul className={depth === 0 ? "space-y-1" : "mt-1 space-y-1 border-l border-gray-200 ml-2"}>
+    <ul className={depth === 0 ? "space-y-1" : "mt-1 space-y-1 border-s border-gray-200 ms-2"}>
       {nodes.map((node) => {
         const active = node.id === selectedId;
         const open = openIds.has(node.id);
@@ -29,7 +31,7 @@ function CategoryList({
               className={`flex items-center justify-between gap-2 px-2 py-1 rounded ${
                 active ? "bg-orange-50 text-orange-600 font-medium" : "text-gray-600 hover:text-orange-600"
               }`}
-              style={{ paddingLeft: `${0.5 + depth * 0.5}rem` }}
+              style={{ paddingInlineStart: `${0.5 + depth * 0.5}rem` }}
             >
               <span className="truncate">{node.name}</span>
               {node.children.length > 0 && (
@@ -52,7 +54,7 @@ export default async function ProductsPage({
   searchParams: Promise<SearchParams>;
 }) {
   const { category: categoryParam, q } = await searchParams;
-  const [products, allCategories] = await Promise.all([getProducts(), getCategories()]);
+  const [products, allCategories, { t }] = await Promise.all([getProducts(), getCategories(), getT()]);
   const tree = buildCategoryTree(allCategories, { enabledOnly: true });
 
   // Accept a category id (new links) or a plain name (old links / hand-typed URLs).
@@ -78,13 +80,13 @@ export default async function ProductsPage({
     );
   }
 
-  const heading = q ? `Search results for "${q}"` : selected?.name ?? "All Products";
+  const heading = q ? fmt(t.products.searchResults, { q }) : selected?.name ?? t.products.allProducts;
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       <div className="flex flex-col sm:flex-row gap-8">
         <aside className="sm:w-60 shrink-0">
-          <h2 className="font-bold text-gray-900 mb-3">Categories</h2>
+          <h2 className="font-bold text-gray-900 mb-3">{t.products.categories}</h2>
           <div className="text-sm">
             <Link
               href="/products"
@@ -92,7 +94,7 @@ export default async function ProductsPage({
                 !selected ? "bg-orange-50 text-orange-600 font-medium" : "text-gray-600 hover:text-orange-600"
               }`}
             >
-              All Products
+              {t.products.allProducts}
             </Link>
             <CategoryList nodes={tree} selectedId={selected?.id} openIds={openIds} />
           </div>
@@ -101,7 +103,7 @@ export default async function ProductsPage({
         <div className="flex-1 min-w-0">
           {path.length > 1 && (
             <nav className="text-xs text-gray-500 mb-2 flex flex-wrap items-center gap-1">
-              <Link href="/products" className="hover:text-orange-600">All</Link>
+              <Link href="/products" className="hover:text-orange-600">{t.products.all}</Link>
               {path.map((c) => (
                 <span key={c.id} className="flex items-center gap-1">
                   <span>›</span>
@@ -113,10 +115,10 @@ export default async function ProductsPage({
             </nav>
           )}
           <h1 className="text-2xl font-bold text-gray-900 mb-1">{heading}</h1>
-          <p className="text-sm text-gray-500 mb-6">{filtered.length} products found</p>
+          <p className="text-sm text-gray-500 mb-6">{fmt(t.products.found, { n: filtered.length })}</p>
 
           {filtered.length === 0 ? (
-            <p className="text-gray-500">No products found. Try a different search or category.</p>
+            <p className="text-gray-500">{t.products.none}</p>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
               {filtered.map((p) => (

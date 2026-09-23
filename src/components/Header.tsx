@@ -4,12 +4,16 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/lib/cart-context";
+import { useT } from "@/lib/i18n/client";
+import { fmt } from "@/lib/i18n";
 import type { CategoryNode } from "@/lib/category-tree";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 
 type CurrentUser = { id: string; name: string; email: string };
 
 export default function Header() {
   const { itemCount } = useCart();
+  const t = useT();
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [user, setUser] = useState<CurrentUser | null>(null);
@@ -53,39 +57,43 @@ export default function Header() {
               name="q"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search for products..."
-              className="w-full rounded-l-md border border-gray-300 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+              placeholder={t.common.searchPlaceholder}
+              className="w-full rounded-s-md border border-gray-300 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
             />
             <button
               type="submit"
-              className="rounded-r-md bg-orange-600 px-4 text-white text-sm font-medium hover:bg-orange-700"
+              className="rounded-e-md bg-orange-600 px-4 text-white text-sm font-medium hover:bg-orange-700"
             >
-              Search
+              {t.common.search}
             </button>
           </form>
 
           <div className="flex items-center gap-4 shrink-0">
+            <LanguageSwitcher className="hidden sm:flex" />
+
             {userLoaded && (
               <div className="hidden sm:flex items-center gap-3 text-sm">
                 {user ? (
                   <>
                     <span className="text-gray-600">
-                      Hi, <span className="font-medium text-gray-900">{user.name}</span>
+                      {t.common.greeting.split("{name}")[0]}
+                      <span className="font-medium text-gray-900">{user.name}</span>
+                      {t.common.greeting.split("{name}")[1]}
                     </span>
                     <button onClick={handleLogout} className="text-gray-500 hover:text-orange-600 font-medium">
-                      Log Out
+                      {t.common.logout}
                     </button>
                   </>
                 ) : (
                   <>
                     <Link href="/login" className="text-gray-600 hover:text-orange-600 font-medium">
-                      Log In
+                      {t.common.login}
                     </Link>
                     <Link
                       href="/signup"
                       className="bg-orange-600 text-white font-medium px-3 py-1.5 rounded-md hover:bg-orange-700"
                     >
-                      Sign Up
+                      {t.common.signup}
                     </Link>
                   </>
                 )}
@@ -100,17 +108,18 @@ export default function Header() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 1.907-4.708 2.322-7.184a1.125 1.125 0 00-1.107-1.316H5.106M7.5 14.25L5.106 5.25M9.75 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm9 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
               </svg>
               {itemCount > 0 && (
-                <span className="absolute -top-2 -right-3 bg-orange-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                <span className="absolute -top-2 -end-3 bg-orange-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
                   {itemCount}
                 </span>
               )}
-              <span className="hidden sm:inline">Cart</span>
+              <span className="hidden sm:inline">{t.common.cart}</span>
             </Link>
           </div>
         </div>
 
         {/* Category nav: scrolls on small screens; on md+ it wraps and shows hover menus. */}
         <nav className="flex items-center gap-6 min-h-11 overflow-x-auto md:overflow-visible md:flex-wrap text-sm">
+          <LanguageSwitcher className="sm:hidden shrink-0" />
           {categories.map((cat) => (
             <div key={cat.id} className="group relative shrink-0 py-2.5">
               <Link
@@ -121,7 +130,7 @@ export default function Header() {
               </Link>
 
               {cat.children.length > 0 && (
-                <div className="absolute left-0 top-full z-50 hidden md:group-hover:block pt-1">
+                <div className="absolute start-0 top-full z-50 hidden md:group-hover:block pt-1">
                   <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-5 min-w-[14rem] max-w-[56rem]">
                     <div
                       className="grid gap-x-8 gap-y-5"
@@ -153,7 +162,7 @@ export default function Header() {
                                     href={`/products?category=${encodeURIComponent(group.id)}`}
                                     className="text-orange-600 hover:underline text-xs"
                                   >
-                                    View all {group.children.length}
+                                    {fmt(t.common.viewAllCount, { n: group.children.length })}
                                   </Link>
                                 </li>
                               )}
