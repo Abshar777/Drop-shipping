@@ -7,6 +7,7 @@ import { buildCategoryTree, categoryPath, flattenTree, type CategoryNode } from 
 import { CATEGORY_ICONS, guessCategoryIcon, isCategoryIcon, resolveCategoryIcon } from "@/lib/category-icons";
 import CategoryIcon from "@/components/CategoryIcon";
 import ThemeSettings from "@/components/ThemeSettings";
+import AdminUsers from "@/components/AdminUsers";
 import type { Product, Order, Category } from "@/lib/types";
 
 const EMPTY_FORM = {
@@ -19,13 +20,13 @@ const EMPTY_FORM = {
   images: "",
 };
 
-type Tab = "products" | "categories" | "orders" | "theme";
+type Tab = "products" | "categories" | "orders" | "theme" | "admins";
 
 const JSON_HEADERS = { "Content-Type": "application/json" };
 
 const SOURCE_LABEL: Record<string, string> = { store: "Store", meesho: "Meesho", noon: "noon" };
 
-export default function AdminDashboard({ adminName }: { adminName: string }) {
+export default function AdminDashboard({ adminId, adminName }: { adminId: string; adminName: string }) {
   const router = useRouter();
   const [tab, setTab] = useState<Tab>("products");
 
@@ -303,6 +304,7 @@ export default function AdminDashboard({ adminName }: { adminName: string }) {
         {tabButton("categories", "Categories", `${enabledCount} / ${categories.length} on`)}
         {tabButton("orders", "Orders", String(orders.length))}
         {tabButton("theme", "Theme")}
+        {tabButton("admins", "Admins")}
       </div>
 
       {/* ------------------------------------------------------------------ */}
@@ -643,6 +645,8 @@ export default function AdminDashboard({ adminName }: { adminName: string }) {
 
       {/* ------------------------------------------------------------------ */}
       {tab === "theme" && <ThemeSettings />}
+
+      {tab === "admins" && <AdminUsers currentAdminId={adminId} />}
 
       {tab === "orders" && (
         <div>

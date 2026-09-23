@@ -22,3 +22,7 @@ export async function findAdminById(id: string): Promise<Admin | undefined> {
   const admins = await getAdmins();
   return admins.find((a) => a.id === id);
 }
+
+export async function saveAdmins(admins: Admin[]): Promise<void> {
+  await fs.writeFile(ADMINS_PATH, JSON.stringify(admins, null, 2) + "\n", "utf-8");
+}
