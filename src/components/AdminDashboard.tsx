@@ -8,6 +8,7 @@ import { CATEGORY_ICONS, guessCategoryIcon, isCategoryIcon, resolveCategoryIcon 
 import CategoryIcon from "@/components/CategoryIcon";
 import ThemeSettings from "@/components/ThemeSettings";
 import AdminUsers from "@/components/AdminUsers";
+import ProductImageUploader from "@/components/ProductImageUploader";
 import type { Product, Order, Category } from "@/lib/types";
 
 const EMPTY_FORM = {
@@ -17,7 +18,7 @@ const EMPTY_FORM = {
   compareAtPrice: "",
   stock: "",
   description: "",
-  images: "",
+  images: [] as string[],
 };
 
 type Tab = "products" | "categories" | "orders" | "theme" | "admins";
@@ -232,7 +233,7 @@ export default function AdminDashboard({ adminId, adminName }: { adminId: string
       compareAtPrice: product.compareAtPrice ? String(product.compareAtPrice) : "",
       stock: String(product.stock),
       description: product.description,
-      images: product.images.join(", "),
+      images: product.images,
     });
     setFormError("");
     setShowForm(true);
@@ -254,10 +255,7 @@ export default function AdminDashboard({ adminId, adminName }: { adminId: string
       compareAtPrice: form.compareAtPrice || undefined,
       stock: form.stock,
       description: form.description,
-      images: form.images
-        .split(",")
-        .map((s) => s.trim())
-        .filter(Boolean),
+      images: form.images,
     };
 
     const res = editingId
@@ -378,19 +376,30 @@ export default function AdminDashboard({ adminId, adminName }: { adminId: string
                 onChange={(e) => setForm({ ...form, stock: e.target.value })}
                 className="border border-gray-300 rounded-md px-3 py-2 text-sm"
               />
-              <input
-                placeholder="Image URLs (comma-separated)"
-                value={form.images}
-                onChange={(e) => setForm({ ...form, images: e.target.value })}
-                className="border border-gray-300 rounded-md px-3 py-2 text-sm sm:col-span-2"
-              />
-              <textarea
-                placeholder="Description"
-                rows={3}
-                value={form.description}
-                onChange={(e) => setForm({ ...form, description: e.target.value })}
-                className="border border-gray-300 rounded-md px-3 py-2 text-sm sm:col-span-2"
-              />
+              <div className="sm:col-span-2">
+                <p className="text-sm font-medium text-gray-700 mb-1.5">Images</p>
+                <ProductImageUploader
+                  images={form.images}
+                  onChange={(images) => setForm((f) => ({ ...f, images }))}
+                  onError={setFormError}
+                />
+              </div>
+              <div className="sm:col-span-2">
+                <div className="flex items-baseline justify-between mb-1.5">
+                  <p className="text-sm font-medium text-gray-700">Description</p>
+                  <span className="text-xs text-gray-400">{form.description.length} characters</span>
+                </div>
+                <textarea
+                  placeholder={
+                    "Describe the product: what it is, key features, sizes or colours, what is in the box.\n" +
+                    "Press Enter for a new line; line breaks are kept on the product page."
+                  }
+                  rows={6}
+                  value={form.description}
+                  onChange={(e) => setForm({ ...form, description: e.target.value })}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm leading-relaxed"
+                />
+              </div>
               <div className="sm:col-span-2 flex gap-3">
                 <button
                   type="submit"

@@ -74,7 +74,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             )}
           </p>
 
-          <p className="text-muted mt-4 leading-relaxed">{product.description}</p>
+          <p className="text-muted mt-4 leading-relaxed whitespace-pre-line">{product.description}</p>
 
           <div className="mt-6">
             <AddToCart productId={product.id} stock={product.stock} />
