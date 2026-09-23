@@ -20,7 +20,7 @@ function CategoryList({
   depth?: number;
 }) {
   return (
-    <ul className={depth === 0 ? "space-y-1" : "mt-1 space-y-1 border-s border-gray-200 ms-2"}>
+    <ul className={depth === 0 ? "space-y-1" : "mt-1 space-y-1 border-s border-border ms-2"}>
       {nodes.map((node) => {
         const active = node.id === selectedId;
         const open = openIds.has(node.id);
@@ -28,14 +28,14 @@ function CategoryList({
           <li key={node.id}>
             <Link
               href={`/products?category=${encodeURIComponent(node.id)}`}
-              className={`flex items-center justify-between gap-2 px-2 py-1 rounded ${
-                active ? "bg-orange-50 text-orange-600 font-medium" : "text-gray-600 hover:text-orange-600"
+              className={`flex items-center justify-between gap-2 px-2 py-1 rounded-btn ${
+                active ? "bg-primary-soft text-primary font-medium" : "text-muted hover:text-primary"
               }`}
               style={{ paddingInlineStart: `${0.5 + depth * 0.5}rem` }}
             >
               <span className="truncate">{node.name}</span>
               {node.children.length > 0 && (
-                <span className="text-[10px] text-gray-400 shrink-0">{open ? "▾" : "▸"}</span>
+                <span className="text-[10px] text-muted shrink-0">{open ? "▾" : "▸"}</span>
               )}
             </Link>
             {open && node.children.length > 0 && (
@@ -86,12 +86,12 @@ export default async function ProductsPage({
     <div className="max-w-7xl mx-auto px-4 py-8">
       <div className="flex flex-col sm:flex-row gap-8">
         <aside className="sm:w-60 shrink-0">
-          <h2 className="font-bold text-gray-900 mb-3">{t.products.categories}</h2>
+          <h2 className="font-bold text-foreground mb-3">{t.products.categories}</h2>
           <div className="text-sm">
             <Link
               href="/products"
-              className={`block px-2 py-1 rounded mb-1 ${
-                !selected ? "bg-orange-50 text-orange-600 font-medium" : "text-gray-600 hover:text-orange-600"
+              className={`block px-2 py-1 rounded-btn mb-1 ${
+                !selected ? "bg-primary-soft text-primary font-medium" : "text-muted hover:text-primary"
               }`}
             >
               {t.products.allProducts}
@@ -102,23 +102,23 @@ export default async function ProductsPage({
 
         <div className="flex-1 min-w-0">
           {path.length > 1 && (
-            <nav className="text-xs text-gray-500 mb-2 flex flex-wrap items-center gap-1">
-              <Link href="/products" className="hover:text-orange-600">{t.products.all}</Link>
+            <nav className="text-xs text-muted mb-2 flex flex-wrap items-center gap-1">
+              <Link href="/products" className="hover:text-primary">{t.products.all}</Link>
               {path.map((c) => (
                 <span key={c.id} className="flex items-center gap-1">
                   <span>›</span>
-                  <Link href={`/products?category=${encodeURIComponent(c.id)}`} className="hover:text-orange-600">
+                  <Link href={`/products?category=${encodeURIComponent(c.id)}`} className="hover:text-primary">
                     {c.name}
                   </Link>
                 </span>
               ))}
             </nav>
           )}
-          <h1 className="text-2xl font-bold text-gray-900 mb-1">{heading}</h1>
-          <p className="text-sm text-gray-500 mb-6">{fmt(t.products.found, { n: filtered.length })}</p>
+          <h1 className="text-2xl font-bold text-foreground mb-1">{heading}</h1>
+          <p className="text-sm text-muted mb-6">{fmt(t.products.found, { n: filtered.length })}</p>
 
           {filtered.length === 0 ? (
-            <p className="text-gray-500">{t.products.none}</p>
+            <p className="text-muted">{t.products.none}</p>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
               {filtered.map((p) => (

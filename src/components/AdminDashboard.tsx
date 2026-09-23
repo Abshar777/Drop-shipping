@@ -6,6 +6,7 @@ import { formatPrice } from "@/lib/format";
 import { buildCategoryTree, categoryPath, flattenTree, type CategoryNode } from "@/lib/category-tree";
 import { CATEGORY_ICONS, guessCategoryIcon, isCategoryIcon, resolveCategoryIcon } from "@/lib/category-icons";
 import CategoryIcon from "@/components/CategoryIcon";
+import ThemeSettings from "@/components/ThemeSettings";
 import type { Product, Order, Category } from "@/lib/types";
 
 const EMPTY_FORM = {
@@ -18,7 +19,7 @@ const EMPTY_FORM = {
   images: "",
 };
 
-type Tab = "products" | "categories" | "orders";
+type Tab = "products" | "categories" | "orders" | "theme";
 
 const JSON_HEADERS = { "Content-Type": "application/json" };
 
@@ -301,6 +302,7 @@ export default function AdminDashboard({ adminName }: { adminName: string }) {
         {tabButton("products", "Products", String(products.length))}
         {tabButton("categories", "Categories", `${enabledCount} / ${categories.length} on`)}
         {tabButton("orders", "Orders", String(orders.length))}
+        {tabButton("theme", "Theme")}
       </div>
 
       {/* ------------------------------------------------------------------ */}
@@ -640,6 +642,8 @@ export default function AdminDashboard({ adminName }: { adminName: string }) {
       )}
 
       {/* ------------------------------------------------------------------ */}
+      {tab === "theme" && <ThemeSettings />}
+
       {tab === "orders" && (
         <div>
           {ordersLoading ? (

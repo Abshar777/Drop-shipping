@@ -17,12 +17,12 @@ export default async function Home() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6">
-      <section className="rounded-2xl bg-gradient-to-r from-orange-600 to-amber-500 text-white px-6 py-12 sm:px-12 sm:py-16 mb-10">
+      <section className="rounded-card bg-hero text-hero-foreground px-6 py-12 sm:px-12 sm:py-16 mb-10">
         <h1 className="text-3xl sm:text-4xl font-extrabold max-w-xl">{t.home.heroTitle}</h1>
-        <p className="mt-3 text-orange-50 max-w-lg">{t.home.heroSubtitle}</p>
+        <p className="mt-3 opacity-80 max-w-lg">{t.home.heroSubtitle}</p>
         <Link
           href="/products"
-          className="inline-block mt-6 bg-white text-orange-700 font-semibold px-6 py-2.5 rounded-md hover:bg-orange-50"
+          className="inline-block mt-6 bg-hero-button text-hero-button-foreground font-semibold px-6 py-2.5 rounded-btn hover:opacity-90"
         >
           {t.home.shopNow}
         </Link>
@@ -30,13 +30,13 @@ export default async function Home() {
 
       {categories.length > 0 && (
         <section className="mb-10">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">{t.home.shopByCategory}</h2>
+          <h2 className="text-xl font-bold text-foreground mb-4">{t.home.shopByCategory}</h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
             {categories.map((cat) => (
               <Link
                 key={cat.id}
                 href={`/products?category=${encodeURIComponent(cat.id)}`}
-                className="bg-gray-50 border border-gray-200 rounded-lg p-4 flex flex-col items-center gap-2 text-center text-sm font-medium text-gray-700 hover:border-orange-400 hover:text-orange-600"
+                className="bg-surface border border-border rounded-card p-4 flex flex-col items-center gap-2 text-center text-sm font-medium text-foreground hover:border-primary hover:text-primary"
               >
                 <CategoryIcon name={resolveCategoryIcon(cat)} className="w-8 h-8" />
                 <span className="leading-tight">{cat.name}</span>
@@ -49,8 +49,8 @@ export default async function Home() {
       {trending.length > 0 && (
         <section className="mb-10">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-gray-900">{t.home.trendingNow}</h2>
-            <Link href="/products" className="text-sm text-orange-600 hover:underline">
+            <h2 className="text-xl font-bold text-foreground">{t.home.trendingNow}</h2>
+            <Link href="/products" className="text-sm text-primary hover:underline">
               {t.common.viewAll}
             </Link>
           </div>
@@ -65,8 +65,8 @@ export default async function Home() {
       {featured.length > 0 && (
         <section className="mb-10">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-gray-900">{t.home.featured}</h2>
-            <Link href="/products" className="text-sm text-orange-600 hover:underline">
+            <h2 className="text-xl font-bold text-foreground">{t.home.featured}</h2>
+            <Link href="/products" className="text-sm text-primary hover:underline">
               {t.common.viewAll}
             </Link>
           </div>

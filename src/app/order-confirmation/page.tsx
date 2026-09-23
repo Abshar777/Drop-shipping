@@ -10,14 +10,14 @@ async function Confirmation({ searchParams }: { searchParams: Promise<{ orderId?
       <div className="w-16 h-16 rounded-full bg-green-100 text-green-600 flex items-center justify-center mx-auto mb-4 text-3xl">
         ✓
       </div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-2">{t.confirmation.title}</h1>
+      <h1 className="text-2xl font-bold text-foreground mb-2">{t.confirmation.title}</h1>
       {orderId && (
-        <p className="text-gray-600 mb-1">
-          {t.confirmation.orderId} <span className="font-mono font-medium" dir="ltr">{orderId}</span>
+        <p className="text-muted mb-1">
+          {t.confirmation.orderId} <span className="font-mono font-medium text-foreground" dir="ltr">{orderId}</span>
         </p>
       )}
-      <p className="text-gray-500 mb-8">{t.confirmation.message}</p>
-      <Link href="/products" className="inline-block bg-orange-600 text-white font-semibold px-6 py-2.5 rounded-md hover:bg-orange-700">
+      <p className="text-muted mb-8">{t.confirmation.message}</p>
+      <Link href="/products" className="inline-block bg-primary text-primary-foreground font-semibold px-6 py-2.5 rounded-btn hover:bg-primary-hover">
         {t.confirmation.continue}
       </Link>
     </div>

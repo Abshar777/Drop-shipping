@@ -1,10 +1,10 @@
 import type { CategoryIconName } from "@/lib/category-icons";
 
-// Outlined 24x24 icons with a single orange accent, in the style of marketplace category bars.
-// Accent shapes are listed first so the dark outline is drawn on top of them.
+// Outlined 24x24 icons with a single accent fill (theme "accentSoft"), in the style of marketplace
+// category bars. Accent shapes are listed first so the outline is drawn on top of them.
 // No hooks and no "use client": usable from server and client components alike.
 
-const ACCENT = "fill-orange-300 stroke-none";
+const ACCENT = "fill-accent-soft stroke-none";
 
 const ICONS: Record<CategoryIconName, React.ReactNode> = {
   sparkles: (

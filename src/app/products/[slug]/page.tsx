@@ -25,7 +25,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     <div className="max-w-7xl mx-auto px-4 py-8">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
         <div>
-          <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
+          <div className="aspect-square bg-surface rounded-card overflow-hidden">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={product.images[0]} alt={product.name} className="w-full h-full object-cover" />
           </div>
@@ -37,7 +37,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                   key={i}
                   src={img}
                   alt={`${product.name} ${i + 1}`}
-                  className="aspect-square object-cover rounded-md border border-gray-200"
+                  className="aspect-square object-cover rounded-input border border-border"
                 />
               ))}
             </div>
@@ -45,23 +45,23 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         </div>
 
         <div>
-          <p className="text-sm text-orange-600 font-medium">{product.category}</p>
-          <h1 className="text-2xl font-bold text-gray-900 mt-1">{product.name}</h1>
+          <p className="text-sm text-primary font-medium">{product.category}</p>
+          <h1 className="text-2xl font-bold text-foreground mt-1">{product.name}</h1>
           <div className="flex items-center gap-2 mt-2 text-sm">
-            <span className="text-amber-500">{"★".repeat(Math.round(product.rating))}</span>
-            <span className="text-gray-500">
+            <span className="text-accent">{"★".repeat(Math.round(product.rating))}</span>
+            <span className="text-muted">
               {fmt(t.product.reviews, { rating: product.rating, n: product.reviewCount })}
             </span>
           </div>
 
           <div className="flex items-baseline gap-3 mt-4">
-            <span className="text-3xl font-bold text-gray-900">{formatPrice(product.price)}</span>
+            <span className="text-3xl font-bold text-foreground">{formatPrice(product.price)}</span>
             {product.compareAtPrice && (
               <>
-                <span className="text-lg text-gray-400 line-through">
+                <span className="text-lg text-muted line-through">
                   {formatPrice(product.compareAtPrice)}
                 </span>
-                <span className="text-sm font-semibold text-green-600">{fmt(t.product.off, { n: discount })}</span>
+                <span className="text-sm font-semibold text-primary">{fmt(t.product.off, { n: discount })}</span>
               </>
             )}
           </div>
@@ -74,7 +74,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             )}
           </p>
 
-          <p className="text-gray-600 mt-4 leading-relaxed">{product.description}</p>
+          <p className="text-muted mt-4 leading-relaxed">{product.description}</p>
 
           <div className="mt-6">
             <AddToCart productId={product.id} stock={product.stock} />
@@ -84,7 +84,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
       {related.length > 0 && (
         <section className="mt-14">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">{t.product.related}</h2>
+          <h2 className="text-xl font-bold text-foreground mb-4">{t.product.related}</h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
             {related.map((p) => (
               <ProductCard key={p.id} product={p} />

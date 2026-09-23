@@ -1,28 +1,77 @@
 @import "tailwindcss";
 
+/*
+ * Theme tokens. Defaults below match the "Sense" preset; the root layout overrides them
+ * inline on <html> from data/theme.json, which the admin edits in the Theme tab.
+ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --theme-background: #ffffff;
+  --theme-surface: #f8f7fc;
+  --theme-foreground: #1a1a2e;
+  --theme-muted: #6b6b80;
+  --theme-border: #e6e4f0;
+  --theme-primary: #5a48f5;
+  --theme-primary-hover: #4636d6;
+  --theme-primary-foreground: #ffffff;
+  --theme-primary-soft: #eeebff;
+  --theme-accent: #ff6b9a;
+  --theme-accent-foreground: #ffffff;
+  --theme-accent-soft: #ffd6e5;
+  --theme-hero-from: #e7deff;
+  --theme-hero-to: #ffe1d6;
+  --theme-hero: linear-gradient(135deg, #e7deff, #ffe1d6);
+  --theme-hero-foreground: #1a1a2e;
+  --theme-hero-button: #1a1a2e;
+  --theme-hero-button-foreground: #ffffff;
+  --theme-footer: #1a1a2e;
+  --theme-footer-foreground: #d6d3e8;
+  --theme-radius-card: 1.25rem;
+  --theme-radius-button: 9999px;
+  --theme-radius-input: 0.75rem;
+  --theme-font: "Assistant";
 }
 
+/* Expose the tokens as Tailwind utilities: bg-primary, text-muted, rounded-card, rounded-btn, ... */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-inter);
+  --color-background: var(--theme-background);
+  --color-surface: var(--theme-surface);
+  --color-foreground: var(--theme-foreground);
+  --color-muted: var(--theme-muted);
+  --color-border: var(--theme-border);
+  --color-primary: var(--theme-primary);
+  --color-primary-hover: var(--theme-primary-hover);
+  --color-primary-foreground: var(--theme-primary-foreground);
+  --color-primary-soft: var(--theme-primary-soft);
+  --color-accent: var(--theme-accent);
+  --color-accent-foreground: var(--theme-accent-foreground);
+  --color-accent-soft: var(--theme-accent-soft);
+  --color-hero-foreground: var(--theme-hero-foreground);
+  --color-hero-button: var(--theme-hero-button);
+  --color-hero-button-foreground: var(--theme-hero-button-foreground);
+  --color-footer: var(--theme-footer);
+  --color-footer-foreground: var(--theme-footer-foreground);
+  --radius-card: var(--theme-radius-card);
+  --radius-btn: var(--theme-radius-button);
+  --radius-input: var(--theme-radius-input);
+  --font-sans: var(--theme-font);
   --font-mono: var(--font-geist-mono);
 }
 
+@utility bg-hero {
+  background-image: var(--theme-hero);
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--theme-background);
+  color: var(--theme-foreground);
   /*
-   * Inter first for Latin. Scripts Inter lacks (Devanagari, Arabic, Malayalam, Tamil) fall through
+   * Theme font first for Latin. Scripts it lacks (Devanagari, Arabic, Malayalam, Tamil) fall through
    * to the matching Noto face. Family names are used directly rather than the next/font variables,
    * because those variables append a synthesized local-Arial fallback that would otherwise capture
    * Arabic text before the Noto font gets a chance. "Inter Fallback" stays at the end for load time.
    */
   font-family:
-    "Inter", "Noto Sans Devanagari", "Noto Sans Arabic", "Noto Sans Malayalam", "Noto Sans Tamil",
+    var(--theme-font), "Noto Sans Devanagari", "Noto Sans Arabic", "Noto Sans Malayalam", "Noto Sans Tamil",
     "Inter Fallback", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
 }
 

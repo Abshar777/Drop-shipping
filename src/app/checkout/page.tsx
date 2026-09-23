@@ -66,21 +66,22 @@ export default function CheckoutPage() {
   if (cartRows.length === 0 && products.length > 0) {
     return (
       <div className="max-w-3xl mx-auto px-4 py-16 text-center">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">{t.cart.empty}</h1>
-        <p className="text-gray-500">{t.checkout.emptyHint}</p>
+        <h1 className="text-2xl font-bold text-foreground mb-2">{t.cart.empty}</h1>
+        <p className="text-muted">{t.checkout.emptyHint}</p>
       </div>
     );
   }
 
-  const inputClass = "border border-gray-300 rounded-md px-3 py-2 text-sm";
+  const inputClass =
+    "border border-border bg-surface text-foreground placeholder:text-muted rounded-input px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary";
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">{t.checkout.title}</h1>
+      <h1 className="text-2xl font-bold text-foreground mb-6">{t.checkout.title}</h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <form onSubmit={handleSubmit} className="lg:col-span-2 flex flex-col gap-4">
-          <h2 className="font-bold text-gray-900">{t.checkout.shippingDetails}</h2>
+          <h2 className="font-bold text-foreground">{t.checkout.shippingDetails}</h2>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <input
@@ -144,33 +145,33 @@ export default function CheckoutPage() {
             />
           </div>
 
-          <h2 className="font-bold text-gray-900 mt-4">{t.checkout.paymentMethod}</h2>
-          <div className="border border-orange-300 bg-orange-50 rounded-md px-4 py-3 text-sm text-gray-700">
+          <h2 className="font-bold text-foreground mt-4">{t.checkout.paymentMethod}</h2>
+          <div className="border border-primary/40 bg-primary-soft rounded-card px-4 py-3 text-sm text-foreground">
             {t.checkout.cod}
           </div>
 
           <button
             type="submit"
             disabled={submitting || cartRows.length === 0}
-            className="mt-4 bg-orange-600 text-white font-semibold py-3 rounded-md hover:bg-orange-700 disabled:opacity-50"
+            className="mt-4 bg-primary text-primary-foreground font-semibold py-3 rounded-btn hover:bg-primary-hover disabled:opacity-50"
           >
             {submitting ? t.checkout.placing : fmt(t.checkout.placeOrder, { total: formatPrice(subtotal) })}
           </button>
         </form>
 
-        <div className="bg-white border border-gray-200 rounded-lg p-5 h-fit">
-          <h2 className="font-bold text-gray-900 mb-4">{t.cart.summary}</h2>
+        <div className="bg-surface border border-border rounded-card p-5 h-fit">
+          <h2 className="font-bold text-foreground mb-4">{t.cart.summary}</h2>
           <div className="flex flex-col gap-3 mb-4">
             {cartRows.map(({ item, product }) => (
               <div key={product.id} className="flex justify-between text-sm">
-                <span className="text-gray-600">
+                <span className="text-muted">
                   {product.name} × {item.quantity}
                 </span>
-                <span className="font-medium">{formatPrice(product.price * item.quantity)}</span>
+                <span className="font-medium text-foreground">{formatPrice(product.price * item.quantity)}</span>
               </div>
             ))}
           </div>
-          <div className="flex justify-between font-bold text-gray-900 border-t border-gray-200 pt-4">
+          <div className="flex justify-between font-bold text-foreground border-t border-border pt-4">
             <span>{t.cart.total}</span>
             <span>{formatPrice(subtotal)}</span>
           </div>

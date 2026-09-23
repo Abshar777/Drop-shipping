@@ -18,7 +18,7 @@ export default function LanguageSwitcher({ className = "" }: { className?: strin
   }
 
   return (
-    <label className={`flex items-center gap-1 text-sm text-gray-600 ${className}`} title={t.common.language}>
+    <label className={`flex items-center gap-1 text-sm text-muted ${className}`} title={t.common.language}>
       <svg
         xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 24 24"
@@ -37,7 +37,7 @@ export default function LanguageSwitcher({ className = "" }: { className?: strin
         onChange={(e) => change(e.target.value)}
         disabled={pending}
         aria-label={t.common.language}
-        className="bg-transparent border border-gray-300 rounded-md px-2 py-1 text-sm text-gray-700 hover:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:opacity-60 cursor-pointer"
+        className="bg-surface border border-border rounded-btn px-2 py-1 text-sm text-foreground hover:border-primary focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-60 cursor-pointer"
       >
         {LOCALES.map((l) => (
           <option key={l.code} value={l.code} lang={l.code}>

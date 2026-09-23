@@ -31,6 +31,7 @@ export default function AdminLoginPage() {
   }
 
   return (
+    <div className="bg-white text-gray-900 min-h-[70vh]" style={{ colorScheme: "light" }}>
     <div className="max-w-sm mx-auto px-4 py-16">
       <h1 className="text-2xl font-bold text-gray-900 mb-1 text-center">Admin Login</h1>
       <p className="text-sm text-gray-500 text-center mb-6">Store management access only</p>
@@ -60,6 +61,7 @@ export default function AdminLoginPage() {
           {submitting ? "Logging in..." : "Log In"}
         </button>
       </form>
+    </div>
     </div>
   );
 }

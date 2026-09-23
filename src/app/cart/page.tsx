@@ -24,7 +24,7 @@ export default function CartPage() {
   }, []);
 
   if (loading) {
-    return <div className="max-w-5xl mx-auto px-4 py-12 text-center text-gray-500">{t.cart.loading}</div>;
+    return <div className="max-w-5xl mx-auto px-4 py-12 text-center text-muted">{t.cart.loading}</div>;
   }
 
   const cartRows = items
@@ -39,9 +39,9 @@ export default function CartPage() {
   if (cartRows.length === 0) {
     return (
       <div className="max-w-5xl mx-auto px-4 py-16 text-center">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">{t.cart.empty}</h1>
-        <p className="text-gray-500 mb-6">{t.cart.emptyHint}</p>
-        <Link href="/products" className="inline-block bg-orange-600 text-white font-semibold px-6 py-2.5 rounded-md hover:bg-orange-700">
+        <h1 className="text-2xl font-bold text-foreground mb-2">{t.cart.empty}</h1>
+        <p className="text-muted mb-6">{t.cart.emptyHint}</p>
+        <Link href="/products" className="inline-block bg-primary text-primary-foreground font-semibold px-6 py-2.5 rounded-btn hover:bg-primary-hover">
           {t.cart.browse}
         </Link>
       </div>
@@ -50,31 +50,31 @@ export default function CartPage() {
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">{t.cart.title}</h1>
+      <h1 className="text-2xl font-bold text-foreground mb-6">{t.cart.title}</h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 flex flex-col gap-4">
           {cartRows.map(({ item, product }) => (
-            <div key={product.id} className="flex gap-4 bg-white border border-gray-200 rounded-lg p-4">
+            <div key={product.id} className="flex gap-4 bg-surface border border-border rounded-card p-4">
               <Link href={`/products/${product.slug}`} className="shrink-0">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={product.images[0]}
                   alt={product.name}
-                  className="w-20 h-20 object-cover rounded-md"
+                  className="w-20 h-20 object-cover rounded-input"
                 />
               </Link>
               <div className="flex-1 min-w-0">
-                <Link href={`/products/${product.slug}`} className="font-medium text-gray-900 hover:text-orange-600 line-clamp-1">
+                <Link href={`/products/${product.slug}`} className="font-medium text-foreground hover:text-primary line-clamp-1">
                   {product.name}
                 </Link>
-                <p className="text-sm text-gray-500 mt-0.5">{fmt(t.cart.each, { price: formatPrice(product.price) })}</p>
+                <p className="text-sm text-muted mt-0.5">{fmt(t.cart.each, { price: formatPrice(product.price) })}</p>
 
                 <div className="flex items-center gap-3 mt-3">
                   <select
                     value={item.quantity}
                     onChange={(e) => updateQuantity(product.id, Number(e.target.value))}
-                    className="border border-gray-300 rounded-md px-2 py-1 text-sm"
+                    className="border border-border bg-background text-foreground rounded-input px-2 py-1 text-sm"
                   >
                     {Array.from({ length: Math.min(product.stock, 10) }, (_, i) => i + 1).map((n) => (
                       <option key={n} value={n}>
@@ -90,30 +90,30 @@ export default function CartPage() {
                   </button>
                 </div>
               </div>
-              <div className="text-end font-semibold text-gray-900 shrink-0">
+              <div className="text-end font-semibold text-foreground shrink-0">
                 {formatPrice(product.price * item.quantity)}
               </div>
             </div>
           ))}
         </div>
 
-        <div className="bg-white border border-gray-200 rounded-lg p-5 h-fit">
-          <h2 className="font-bold text-gray-900 mb-4">{t.cart.summary}</h2>
+        <div className="bg-surface border border-border rounded-card p-5 h-fit">
+          <h2 className="font-bold text-foreground mb-4">{t.cart.summary}</h2>
           <div className="flex justify-between text-sm mb-2">
-            <span className="text-gray-600">{t.cart.subtotal}</span>
-            <span className="font-medium">{formatPrice(subtotal)}</span>
+            <span className="text-muted">{t.cart.subtotal}</span>
+            <span className="font-medium text-foreground">{formatPrice(subtotal)}</span>
           </div>
           <div className="flex justify-between text-sm mb-4">
-            <span className="text-gray-600">{t.cart.shipping}</span>
+            <span className="text-muted">{t.cart.shipping}</span>
             <span className="font-medium text-green-600">{t.cart.free}</span>
           </div>
-          <div className="flex justify-between font-bold text-gray-900 border-t border-gray-200 pt-4 mb-4">
+          <div className="flex justify-between font-bold text-foreground border-t border-border pt-4 mb-4">
             <span>{t.cart.total}</span>
             <span>{formatPrice(subtotal)}</span>
           </div>
           <Link
             href="/checkout"
-            className="block text-center bg-orange-600 text-white font-semibold py-2.5 rounded-md hover:bg-orange-700"
+            className="block text-center bg-primary text-primary-foreground font-semibold py-2.5 rounded-btn hover:bg-primary-hover"
           >
             {t.cart.checkout}
           </Link>
