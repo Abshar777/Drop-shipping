@@ -133,7 +133,7 @@ export default function Header() {
                 className="flex flex-col items-center gap-1 w-full px-1 py-1.5 rounded-lg text-gray-800 hover:bg-orange-50 hover:text-orange-700"
                 title={cat.name}
               >
-                <CategoryIcon name={resolveCategoryIcon(cat)} className="w-9 h-9 sm:w-11 sm:h-11" />
+                <CategoryIcon name={resolveCategoryIcon(cat)} className="w-7 h-7 sm:w-8 sm:h-8" />
                 <span className="w-full text-center text-[11px] sm:text-sm font-medium leading-tight truncate">
                   {cat.name}
                 </span>
