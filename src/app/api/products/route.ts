@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getProducts, saveProducts } from "@/lib/products";
+import { getCategoryById } from "@/lib/categories";
 import { isAdminAuthenticated } from "@/lib/require-admin";
 import type { Product } from "@/lib/types";
 
@@ -16,6 +17,17 @@ export async function POST(request: Request) {
   const body = await request.json();
   const products = await getProducts();
 
+  // Category: prefer a categoryId from the category tree; the display name is derived from it.
+  let categoryId: string | undefined;
+  let categoryName: string = typeof body.category === "string" ? body.category : "";
+  if (body.categoryId) {
+    const category = await getCategoryById(String(body.categoryId));
+    if (!category) return NextResponse.json({ error: "Category not found" }, { status: 400 });
+    categoryId = category.id;
+    categoryName = category.name;
+  }
+  if (!categoryName) return NextResponse.json({ error: "Category is required" }, { status: 400 });
+
   const slug = body.name
     .toLowerCase()
     .trim()
@@ -26,7 +38,8 @@ export async function POST(request: Request) {
     id: `p${Date.now()}`,
     slug,
     name: body.name,
-    category: body.category,
+    category: categoryName,
+    categoryId,
     price: Number(body.price),
     compareAtPrice: body.compareAtPrice ? Number(body.compareAtPrice) : undefined,
     images: body.images?.length ? body.images : ["https://picsum.photos/seed/" + slug + "/600/600"],

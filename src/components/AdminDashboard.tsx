@@ -1,13 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { formatPrice } from "@/lib/format";
-import type { Product, Order } from "@/lib/types";
+import { buildCategoryTree, categoryPath, flattenTree, type CategoryNode } from "@/lib/category-tree";
+import type { Product, Order, Category } from "@/lib/types";
 
 const EMPTY_FORM = {
   name: "",
-  category: "",
+  categoryId: "",
   price: "",
   compareAtPrice: "",
   stock: "",
@@ -15,7 +16,11 @@ const EMPTY_FORM = {
   images: "",
 };
 
-type Tab = "products" | "orders";
+type Tab = "products" | "categories" | "orders";
+
+const JSON_HEADERS = { "Content-Type": "application/json" };
+
+const SOURCE_LABEL: Record<string, string> = { store: "Store", meesho: "Meesho", noon: "noon" };
 
 export default function AdminDashboard({ adminName }: { adminName: string }) {
   const router = useRouter();
@@ -26,13 +31,23 @@ export default function AdminDashboard({ adminName }: { adminName: string }) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(EMPTY_FORM);
   const [showForm, setShowForm] = useState(false);
+  const [formError, setFormError] = useState("");
+
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const [categorySearch, setCategorySearch] = useState("");
+  const [sourceFilter, setSourceFilter] = useState<"all" | "store" | "meesho" | "noon">("all");
+  const [onlyEnabled, setOnlyEnabled] = useState(false);
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const [categoryError, setCategoryError] = useState("");
 
   const [orders, setOrders] = useState<Order[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(true);
 
-  function loadProducts() {
-    setProductsLoading(true);
-    fetch("/api/products")
+  // Fetchers only touch state inside their callbacks, so they are safe to call from the initial effect.
+  function fetchProducts() {
+    return fetch("/api/products")
       .then((res) => res.json())
       .then((data) => {
         setProducts(data);
@@ -40,9 +55,17 @@ export default function AdminDashboard({ adminName }: { adminName: string }) {
       });
   }
 
-  function loadOrders() {
-    setOrdersLoading(true);
-    fetch("/api/orders")
+  function fetchCategories() {
+    return fetch("/api/categories?all=1")
+      .then((res) => res.json())
+      .then((data) => {
+        setCategories(Array.isArray(data.categories) ? data.categories : []);
+        setCategoriesLoading(false);
+      });
+  }
+
+  function fetchOrders() {
+    return fetch("/api/orders")
       .then((res) => res.json())
       .then((data) => {
         setOrders(Array.isArray(data) ? data : []);
@@ -50,11 +73,138 @@ export default function AdminDashboard({ adminName }: { adminName: string }) {
       });
   }
 
+  // Reloads after a mutation show the spinner first.
+  function loadProducts() {
+    setProductsLoading(true);
+    fetchProducts();
+  }
+
+  function loadCategories() {
+    fetchCategories();
+  }
+
   useEffect(() => {
-    loadProducts();
-    loadOrders();
+    fetchProducts();
+    fetchCategories();
+    fetchOrders();
   }, []);
 
+  // ---- derived category views -------------------------------------------------
+  const tree = useMemo(() => buildCategoryTree(categories), [categories]);
+  const flatAll = useMemo(() => flattenTree(tree), [tree]);
+  const categoryById = useMemo(() => new Map(categories.map((c) => [c.id, c])), [categories]);
+
+  const productCount = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const p of products) {
+      const key = p.categoryId ?? categories.find((c) => !c.parentId && c.name === p.category)?.id;
+      if (key) counts.set(key, (counts.get(key) ?? 0) + 1);
+    }
+    return counts;
+  }, [products, categories]);
+
+  const enabledCount = categories.filter((c) => c.enabled).length;
+
+  /** Rows to render in the Categories tab: a tree when browsing, a flat match list when searching. */
+  const categoryRows = useMemo(() => {
+    const term = categorySearch.trim().toLowerCase();
+    const matchesFilters = (c: Category) =>
+      (sourceFilter === "all" || (c.source ?? "store") === sourceFilter) && (!onlyEnabled || c.enabled);
+
+    if (term) {
+      return flatAll
+        .filter(({ node }) => node.name.toLowerCase().includes(term) && matchesFilters(node))
+        .map(({ node }) => ({ node, depth: 0, showPath: true }));
+    }
+
+    const out: Array<{ node: CategoryNode; depth: number; showPath: boolean }> = [];
+    const walk = (nodes: CategoryNode[], depth: number) => {
+      for (const node of nodes) {
+        // Keep a parent visible if any descendant passes the filter, so the tree stays navigable.
+        const subtree = flattenTree([node]).map((r) => r.node);
+        if (!subtree.some(matchesFilters)) continue;
+        out.push({ node, depth, showPath: false });
+        if (expanded.has(node.id)) walk(node.children, depth + 1);
+      }
+    };
+    walk(tree, 0);
+    return out;
+  }, [flatAll, tree, categorySearch, sourceFilter, onlyEnabled, expanded]);
+
+  function toggleExpanded(id: string) {
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function expandAll() {
+    setExpanded(new Set(categories.filter((c) => categories.some((x) => x.parentId === c.id)).map((c) => c.id)));
+  }
+
+  function pathLabel(id: string) {
+    return categoryPath(categories, id)
+      .map((c) => c.name)
+      .join(" › ");
+  }
+
+  function hiddenByAncestor(id: string) {
+    const chain = categoryPath(categories, id);
+    return chain.slice(0, -1).some((c) => !c.enabled);
+  }
+
+  // ---- category actions -------------------------------------------------------
+  async function patchCategory(id: string, body: Record<string, unknown>) {
+    setCategoryError("");
+    setBusyId(id);
+    const res = await fetch(`/api/categories/${id}`, {
+      method: "PATCH",
+      headers: JSON_HEADERS,
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) setCategoryError((await res.json()).error || "Something went wrong");
+    setBusyId(null);
+    loadCategories();
+  }
+
+  async function addCategory(parentId: string | null) {
+    const label = parentId ? `New subcategory under "${categoryById.get(parentId)?.name}"` : "New top-level category";
+    const name = prompt(label + "\n\nName:");
+    if (!name || !name.trim()) return;
+    setCategoryError("");
+    const res = await fetch("/api/categories", {
+      method: "POST",
+      headers: JSON_HEADERS,
+      body: JSON.stringify({ name: name.trim(), parentId }),
+    });
+    if (!res.ok) setCategoryError((await res.json()).error || "Something went wrong");
+    else if (parentId) setExpanded((prev) => new Set(prev).add(parentId));
+    loadCategories();
+  }
+
+  async function renameCategory(c: Category) {
+    const name = prompt("Rename category:", c.name);
+    if (!name || !name.trim() || name.trim() === c.name) return;
+    await patchCategory(c.id, { name: name.trim() });
+  }
+
+  async function deleteCategory(c: Category) {
+    const kids = categories.filter((x) => x.parentId === c.id).length;
+    const msg = kids
+      ? `Delete "${c.name}" and all of its subcategories?`
+      : `Delete "${c.name}"?`;
+    if (!confirm(msg)) return;
+    setCategoryError("");
+    setBusyId(c.id);
+    const res = await fetch(`/api/categories/${c.id}`, { method: "DELETE" });
+    if (!res.ok) setCategoryError((await res.json()).error || "Something went wrong");
+    setBusyId(null);
+    loadCategories();
+  }
+
+  // ---- product actions --------------------------------------------------------
   async function handleLogout() {
     await fetch("/api/admin/logout", { method: "POST" });
     router.push("/admin/login");
@@ -64,20 +214,23 @@ export default function AdminDashboard({ adminName }: { adminName: string }) {
   function startAdd() {
     setEditingId(null);
     setForm(EMPTY_FORM);
+    setFormError("");
     setShowForm(true);
   }
 
   function startEdit(product: Product) {
     setEditingId(product.id);
+    const fallbackId = categories.find((c) => !c.parentId && c.name === product.category)?.id ?? "";
     setForm({
       name: product.name,
-      category: product.category,
+      categoryId: product.categoryId ?? fallbackId,
       price: String(product.price),
       compareAtPrice: product.compareAtPrice ? String(product.compareAtPrice) : "",
       stock: String(product.stock),
       description: product.description,
       images: product.images.join(", "),
     });
+    setFormError("");
     setShowForm(true);
   }
 
@@ -89,9 +242,10 @@ export default function AdminDashboard({ adminName }: { adminName: string }) {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setFormError("");
     const payload = {
       name: form.name,
-      category: form.category,
+      categoryId: form.categoryId,
       price: form.price,
       compareAtPrice: form.compareAtPrice || undefined,
       stock: form.stock,
@@ -102,23 +256,29 @@ export default function AdminDashboard({ adminName }: { adminName: string }) {
         .filter(Boolean),
     };
 
-    if (editingId) {
-      await fetch(`/api/products/${editingId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-    } else {
-      await fetch("/api/products", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-    }
+    const res = editingId
+      ? await fetch(`/api/products/${editingId}`, { method: "PUT", headers: JSON_HEADERS, body: JSON.stringify(payload) })
+      : await fetch("/api/products", { method: "POST", headers: JSON_HEADERS, body: JSON.stringify(payload) });
 
+    if (!res.ok) {
+      setFormError((await res.json()).error || "Something went wrong");
+      return;
+    }
     setShowForm(false);
     loadProducts();
   }
+
+  const tabButton = (key: Tab, label: string, badge?: string) => (
+    <button
+      onClick={() => setTab(key)}
+      className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px flex items-center gap-2 ${
+        tab === key ? "border-orange-600 text-orange-600" : "border-transparent text-gray-500 hover:text-gray-700"
+      }`}
+    >
+      {label}
+      {badge && <span className="text-xs bg-gray-100 text-gray-600 rounded-full px-2 py-0.5">{badge}</span>}
+    </button>
+  );
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
@@ -136,24 +296,12 @@ export default function AdminDashboard({ adminName }: { adminName: string }) {
       </div>
 
       <div className="flex gap-1 border-b border-gray-200 mb-6">
-        <button
-          onClick={() => setTab("products")}
-          className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px ${
-            tab === "products" ? "border-orange-600 text-orange-600" : "border-transparent text-gray-500 hover:text-gray-700"
-          }`}
-        >
-          Products
-        </button>
-        <button
-          onClick={() => setTab("orders")}
-          className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px ${
-            tab === "orders" ? "border-orange-600 text-orange-600" : "border-transparent text-gray-500 hover:text-gray-700"
-          }`}
-        >
-          Orders
-        </button>
+        {tabButton("products", "Products", String(products.length))}
+        {tabButton("categories", "Categories", `${enabledCount} / ${categories.length} on`)}
+        {tabButton("orders", "Orders", String(orders.length))}
       </div>
 
+      {/* ------------------------------------------------------------------ */}
       {tab === "products" && (
         <div>
           <div className="flex justify-end mb-4">
@@ -173,6 +321,11 @@ export default function AdminDashboard({ adminName }: { adminName: string }) {
               <h2 className="sm:col-span-2 font-bold text-gray-900">
                 {editingId ? "Edit Product" : "New Product"}
               </h2>
+              {formError && (
+                <p className="sm:col-span-2 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2">
+                  {formError}
+                </p>
+              )}
               <input
                 required
                 placeholder="Product name"
@@ -180,13 +333,22 @@ export default function AdminDashboard({ adminName }: { adminName: string }) {
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
                 className="border border-gray-300 rounded-md px-3 py-2 text-sm sm:col-span-2"
               />
-              <input
+              <select
                 required
-                placeholder="Category"
-                value={form.category}
-                onChange={(e) => setForm({ ...form, category: e.target.value })}
-                className="border border-gray-300 rounded-md px-3 py-2 text-sm"
-              />
+                value={form.categoryId}
+                onChange={(e) => setForm({ ...form, categoryId: e.target.value })}
+                className="border border-gray-300 rounded-md px-3 py-2 text-sm bg-white"
+              >
+                <option value="">Select category…</option>
+                {flatAll.map(({ node, depth }) => (
+                  <option key={node.id} value={node.id}>
+                    {"  ".repeat(depth)}
+                    {depth > 0 ? "└ " : ""}
+                    {node.name}
+                    {!node.enabled ? " (hidden)" : ""}
+                  </option>
+                ))}
+              </select>
               <input
                 required
                 type="number"
@@ -263,7 +425,9 @@ export default function AdminDashboard({ adminName }: { adminName: string }) {
                         <img src={p.images[0]} alt={p.name} className="w-10 h-10 object-cover rounded" />
                         <span className="line-clamp-1">{p.name}</span>
                       </td>
-                      <td className="px-4 py-2 text-gray-600">{p.category}</td>
+                      <td className="px-4 py-2 text-gray-600">
+                        {p.categoryId && categoryById.has(p.categoryId) ? pathLabel(p.categoryId) : p.category}
+                      </td>
                       <td className="px-4 py-2 font-medium">{formatPrice(p.price)}</td>
                       <td className="px-4 py-2">{p.stock}</td>
                       <td className="px-4 py-2 text-right whitespace-nowrap">
@@ -283,6 +447,175 @@ export default function AdminDashboard({ adminName }: { adminName: string }) {
         </div>
       )}
 
+      {/* ------------------------------------------------------------------ */}
+      {tab === "categories" && (
+        <div>
+          <div className="flex flex-col md:flex-row md:items-center gap-3 mb-4">
+            <input
+              type="search"
+              placeholder="Search categories…"
+              value={categorySearch}
+              onChange={(e) => setCategorySearch(e.target.value)}
+              className="border border-gray-300 rounded-md px-3 py-2 text-sm md:w-64"
+            />
+            <select
+              value={sourceFilter}
+              onChange={(e) => setSourceFilter(e.target.value as typeof sourceFilter)}
+              className="border border-gray-300 rounded-md px-3 py-2 text-sm bg-white"
+            >
+              <option value="all">All sources</option>
+              <option value="store">Store</option>
+              <option value="meesho">Meesho</option>
+              <option value="noon">noon</option>
+            </select>
+            <label className="flex items-center gap-2 text-sm text-gray-600">
+              <input type="checkbox" checked={onlyEnabled} onChange={(e) => setOnlyEnabled(e.target.checked)} />
+              Enabled only
+            </label>
+            <div className="flex-1" />
+            <button onClick={expandAll} className="text-sm text-gray-600 hover:text-orange-600">
+              Expand all
+            </button>
+            <button onClick={() => setExpanded(new Set())} className="text-sm text-gray-600 hover:text-orange-600">
+              Collapse all
+            </button>
+            <button
+              onClick={() => addCategory(null)}
+              className="bg-orange-600 text-white font-semibold px-4 py-2 rounded-md hover:bg-orange-700 text-sm"
+            >
+              + Add Category
+            </button>
+          </div>
+
+          <p className="text-xs text-gray-500 mb-3">
+            Enabled categories appear in the storefront menu, the home page, and the product filter. A subcategory
+            only shows if every parent above it is enabled too. Use <span className="font-medium">All on / All off</span>{" "}
+            to switch a whole branch at once.
+          </p>
+
+          {categoryError && (
+            <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2 mb-3">
+              {categoryError}
+            </p>
+          )}
+
+          {categoriesLoading ? (
+            <p className="text-gray-500">Loading...</p>
+          ) : categoryRows.length === 0 ? (
+            <p className="text-gray-500">No categories match.</p>
+          ) : (
+            <div className="bg-white border border-gray-200 rounded-lg overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50 text-left text-gray-500">
+                  <tr>
+                    <th className="px-4 py-2">Category</th>
+                    <th className="px-3 py-2 whitespace-nowrap">Products</th>
+                    <th className="px-3 py-2">Source</th>
+                    <th className="px-3 py-2">Visible</th>
+                    <th className="px-3 py-2"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {categoryRows.map(({ node, depth, showPath }) => {
+                    const kids = node.children.length;
+                    const open = expanded.has(node.id);
+                    const busy = busyId === node.id;
+                    const shadowed = node.enabled && hiddenByAncestor(node.id);
+                    return (
+                      <tr key={node.id} className={`border-t border-gray-100 ${busy ? "opacity-50" : ""}`}>
+                        <td className="px-4 py-1.5">
+                          <div className="flex items-center gap-1" style={{ paddingLeft: `${depth * 1.25}rem` }}>
+                            {kids > 0 && !showPath ? (
+                              <button
+                                onClick={() => toggleExpanded(node.id)}
+                                className="w-5 h-5 flex items-center justify-center text-gray-400 hover:text-gray-700 shrink-0"
+                                aria-label={open ? "Collapse" : "Expand"}
+                              >
+                                {open ? "▾" : "▸"}
+                              </button>
+                            ) : (
+                              <span className="w-5 shrink-0" />
+                            )}
+                            <div className="min-w-0">
+                              <span className={`${depth === 0 && !showPath ? "font-semibold text-gray-900" : "text-gray-800"}`}>
+                                {node.name}
+                              </span>
+                              {kids > 0 && (
+                                <span className="ml-2 text-xs text-gray-400">{kids} sub</span>
+                              )}
+                              {showPath && (
+                                <div className="text-xs text-gray-400 truncate">{pathLabel(node.id)}</div>
+                              )}
+                              {shadowed && (
+                                <div className="text-xs text-amber-600">Hidden because a parent category is off</div>
+                              )}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-3 py-1.5 text-gray-600 text-center">{productCount.get(node.id) ?? ""}</td>
+                        <td className="px-3 py-1.5">
+                          <span className="text-xs bg-gray-100 text-gray-600 rounded px-1.5 py-0.5">
+                            {SOURCE_LABEL[node.source ?? "store"]}
+                          </span>
+                        </td>
+                        <td className="px-3 py-1.5">
+                          <button
+                            onClick={() => patchCategory(node.id, { enabled: !node.enabled })}
+                            disabled={busy}
+                            role="switch"
+                            aria-checked={node.enabled}
+                            className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+                              node.enabled ? "bg-green-500" : "bg-gray-300"
+                            }`}
+                            title={node.enabled ? "Visible on storefront. Click to hide." : "Hidden. Click to show."}
+                          >
+                            <span
+                              className={`inline-block h-4 w-4 rounded-full bg-white shadow transform transition-transform ${
+                                node.enabled ? "translate-x-4" : "translate-x-0.5"
+                              }`}
+                            />
+                          </button>
+                        </td>
+                        <td className="px-3 py-1.5 text-right whitespace-nowrap text-xs">
+                          {kids > 0 && (
+                            <>
+                              <button
+                                onClick={() => patchCategory(node.id, { enabled: true, cascade: true })}
+                                className="text-green-700 hover:underline mr-2"
+                                title="Enable this category and everything under it"
+                              >
+                                All on
+                              </button>
+                              <button
+                                onClick={() => patchCategory(node.id, { enabled: false, cascade: true })}
+                                className="text-gray-500 hover:underline mr-2"
+                                title="Disable this category and everything under it"
+                              >
+                                All off
+                              </button>
+                            </>
+                          )}
+                          <button onClick={() => addCategory(node.id)} className="text-orange-600 hover:underline mr-2">
+                            + Sub
+                          </button>
+                          <button onClick={() => renameCategory(node)} className="text-gray-600 hover:underline mr-2">
+                            Rename
+                          </button>
+                          <button onClick={() => deleteCategory(node)} className="text-red-600 hover:underline">
+                            Delete
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ------------------------------------------------------------------ */}
       {tab === "orders" && (
         <div>
           {ordersLoading ? (

@@ -17,7 +17,8 @@
     "tags": [
       "trending",
       "featured"
-    ]
+    ],
+    "categoryId": "electronics"
   },
   {
     "id": "p2",
@@ -36,7 +37,8 @@
     "stock": 60,
     "tags": [
       "featured"
-    ]
+    ],
+    "categoryId": "electronics"
   },
   {
     "id": "p3",
@@ -55,7 +57,8 @@
     "stock": 35,
     "tags": [
       "trending"
-    ]
+    ],
+    "categoryId": "home-and-kitchen"
   },
   {
     "id": "p4",
@@ -75,7 +78,8 @@
     "tags": [
       "trending",
       "featured"
-    ]
+    ],
+    "categoryId": "home-and-kitchen"
   },
   {
     "id": "p5",
@@ -94,7 +98,8 @@
     "stock": 50,
     "tags": [
       "featured"
-    ]
+    ],
+    "categoryId": "fashion"
   },
   {
     "id": "p6",
@@ -111,7 +116,8 @@
     "rating": 4.1,
     "reviewCount": 41,
     "stock": 90,
-    "tags": []
+    "tags": [],
+    "categoryId": "fashion"
   },
   {
     "id": "p7",
@@ -131,7 +137,8 @@
     "tags": [
       "trending",
       "featured"
-    ]
+    ],
+    "categoryId": "beauty"
   },
   {
     "id": "p8",
@@ -148,7 +155,8 @@
     "rating": 4.3,
     "reviewCount": 63,
     "stock": 110,
-    "tags": []
+    "tags": [],
+    "categoryId": "beauty"
   },
   {
     "id": "p9",
@@ -167,7 +175,8 @@
     "stock": 80,
     "tags": [
       "featured"
-    ]
+    ],
+    "categoryId": "fitness"
   },
   {
     "id": "p10",
@@ -184,7 +193,8 @@
     "rating": 4.4,
     "reviewCount": 78,
     "stock": 65,
-    "tags": []
+    "tags": [],
+    "categoryId": "fitness"
   },
   {
     "id": "p11",
@@ -203,7 +213,8 @@
     "stock": 20,
     "tags": [
       "trending"
-    ]
+    ],
+    "categoryId": "electronics"
   },
   {
     "id": "p12",
@@ -222,6 +233,7 @@
     "stock": 55,
     "tags": [
       "featured"
-    ]
+    ],
+    "categoryId": "toys"
   }
 ]

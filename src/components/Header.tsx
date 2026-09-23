@@ -4,8 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/lib/cart-context";
-
-const CATEGORIES = ["Electronics", "Home & Kitchen", "Fashion", "Beauty", "Fitness", "Toys"];
+import type { CategoryNode } from "@/lib/category-tree";
 
 type CurrentUser = { id: string; name: string; email: string };
 
@@ -15,6 +14,7 @@ export default function Header() {
   const [query, setQuery] = useState("");
   const [user, setUser] = useState<CurrentUser | null>(null);
   const [userLoaded, setUserLoaded] = useState(false);
+  const [categories, setCategories] = useState<CategoryNode[]>([]);
 
   useEffect(() => {
     fetch("/api/auth/me")
@@ -23,6 +23,10 @@ export default function Header() {
         setUser(data.user);
         setUserLoaded(true);
       });
+    fetch("/api/categories")
+      .then((res) => res.json())
+      .then((data) => setCategories(Array.isArray(data.tree) ? data.tree : []))
+      .catch(() => setCategories([]));
   }, []);
 
   async function handleLogout() {
@@ -105,15 +109,63 @@ export default function Header() {
           </div>
         </div>
 
-        <nav className="flex items-center gap-6 h-11 overflow-x-auto text-sm">
-          {CATEGORIES.map((cat) => (
-            <Link
-              key={cat}
-              href={`/products?category=${encodeURIComponent(cat)}`}
-              className="whitespace-nowrap text-gray-600 hover:text-orange-600 font-medium"
-            >
-              {cat}
-            </Link>
+        {/* Category nav: scrolls on small screens; on md+ it wraps and shows hover menus. */}
+        <nav className="flex items-center gap-6 min-h-11 overflow-x-auto md:overflow-visible md:flex-wrap text-sm">
+          {categories.map((cat) => (
+            <div key={cat.id} className="group relative shrink-0 py-2.5">
+              <Link
+                href={`/products?category=${encodeURIComponent(cat.id)}`}
+                className="whitespace-nowrap text-gray-600 hover:text-orange-600 font-medium"
+              >
+                {cat.name}
+              </Link>
+
+              {cat.children.length > 0 && (
+                <div className="absolute left-0 top-full z-50 hidden md:group-hover:block pt-1">
+                  <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-5 min-w-[14rem] max-w-[56rem]">
+                    <div
+                      className="grid gap-x-8 gap-y-5"
+                      style={{ gridTemplateColumns: `repeat(${Math.min(cat.children.length, 4)}, minmax(10rem, max-content))` }}
+                    >
+                      {cat.children.map((group) => (
+                        <div key={group.id}>
+                          <Link
+                            href={`/products?category=${encodeURIComponent(group.id)}`}
+                            className="block font-semibold text-gray-900 hover:text-orange-600 whitespace-nowrap"
+                          >
+                            {group.name}
+                          </Link>
+                          {group.children.length > 0 && (
+                            <ul className="mt-1.5 space-y-1">
+                              {group.children.slice(0, 8).map((leaf) => (
+                                <li key={leaf.id}>
+                                  <Link
+                                    href={`/products?category=${encodeURIComponent(leaf.id)}`}
+                                    className="text-gray-600 hover:text-orange-600 whitespace-nowrap"
+                                  >
+                                    {leaf.name}
+                                  </Link>
+                                </li>
+                              ))}
+                              {group.children.length > 8 && (
+                                <li>
+                                  <Link
+                                    href={`/products?category=${encodeURIComponent(group.id)}`}
+                                    className="text-orange-600 hover:underline text-xs"
+                                  >
+                                    View all {group.children.length}
+                                  </Link>
+                                </li>
+                              )}
+                            </ul>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
           ))}
         </nav>
       </div>

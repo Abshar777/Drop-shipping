@@ -1,13 +1,16 @@
 import Link from "next/link";
 import { getProducts } from "@/lib/products";
+import { getCategories } from "@/lib/categories";
+import { buildCategoryTree } from "@/lib/category-tree";
 import ProductCard from "@/components/ProductCard";
 
 export default async function Home() {
-  const products = await getProducts();
+  const [products, allCategories] = await Promise.all([getProducts(), getCategories()]);
   const featured = products.filter((p) => p.tags?.includes("featured"));
   const trending = products.filter((p) => p.tags?.includes("trending"));
 
-  const categories = Array.from(new Set(products.map((p) => p.category)));
+  // Only categories the admin has enabled appear on the storefront.
+  const categories = buildCategoryTree(allCategories, { enabledOnly: true });
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6">
@@ -26,20 +29,22 @@ export default async function Home() {
         </Link>
       </section>
 
-      <section className="mb-10">
-        <h2 className="text-xl font-bold text-gray-900 mb-4">Shop by Category</h2>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
-          {categories.map((cat) => (
-            <Link
-              key={cat}
-              href={`/products?category=${encodeURIComponent(cat)}`}
-              className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center text-sm font-medium text-gray-700 hover:border-orange-400 hover:text-orange-600"
-            >
-              {cat}
-            </Link>
-          ))}
-        </div>
-      </section>
+      {categories.length > 0 && (
+        <section className="mb-10">
+          <h2 className="text-xl font-bold text-gray-900 mb-4">Shop by Category</h2>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
+            {categories.map((cat) => (
+              <Link
+                key={cat.id}
+                href={`/products?category=${encodeURIComponent(cat.id)}`}
+                className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center text-sm font-medium text-gray-700 hover:border-orange-400 hover:text-orange-600"
+              >
+                {cat.name}
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       {trending.length > 0 && (
         <section className="mb-10">

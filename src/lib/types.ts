@@ -3,6 +3,8 @@ export type Product = {
   slug: string;
   name: string;
   category: string;
+  /** Id in data/categories.json. `category` above is the display name derived from it. */
+  categoryId?: string;
   price: number;
   compareAtPrice?: number;
   images: string[];
@@ -48,4 +50,14 @@ export type Admin = {
   name: string;
   email: string;
   passwordHash: string;
+};
+
+export type Category = {
+  id: string;
+  name: string;
+  parentId: string | null;
+  enabled: boolean;
+  order: number;
+  /** Where the entry came from: your own store, or a catalogue imported for reference. */
+  source?: "store" | "meesho" | "noon";
 };
