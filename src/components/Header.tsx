@@ -138,46 +138,63 @@ export default function Header() {
 
               {cat.children.length > 0 && (
                 <div className="absolute start-0 top-full z-50 hidden md:group-hover:block pt-1">
-                  <div className="bg-background border border-border rounded-card shadow-lg p-5 min-w-[14rem] max-w-[56rem]">
-                    <div
-                      className="grid gap-x-8 gap-y-5"
-                      style={{ gridTemplateColumns: `repeat(${Math.min(cat.children.length, 4)}, minmax(10rem, max-content))` }}
-                    >
-                      {cat.children.map((group) => (
-                        <div key={group.id}>
-                          <Link
-                            href={`/products?category=${encodeURIComponent(group.id)}`}
-                            className="block font-semibold text-foreground hover:text-primary whitespace-nowrap"
-                          >
-                            {group.name}
-                          </Link>
-                          {group.children.length > 0 && (
-                            <ul className="mt-1.5 space-y-1">
-                              {group.children.slice(0, 8).map((leaf) => (
-                                <li key={leaf.id}>
-                                  <Link
-                                    href={`/products?category=${encodeURIComponent(leaf.id)}`}
-                                    className="text-muted hover:text-primary whitespace-nowrap"
-                                  >
-                                    {leaf.name}
-                                  </Link>
-                                </li>
-                              ))}
-                              {group.children.length > 8 && (
-                                <li>
-                                  <Link
-                                    href={`/products?category=${encodeURIComponent(group.id)}`}
-                                    className="text-primary hover:underline text-xs"
-                                  >
-                                    {fmt(t.common.viewAllCount, { n: group.children.length })}
-                                  </Link>
-                                </li>
-                              )}
-                            </ul>
-                          )}
-                        </div>
-                      ))}
-                    </div>
+                  <div className="bg-background border border-border rounded-card shadow-lg p-3 min-w-[14rem] max-w-[56rem]">
+                    {cat.children.some((group) => group.children.length > 0) ? (
+                      /* Groups with their own subcategories: one column per group, items listed downwards. */
+                      <div
+                        className="grid gap-x-8 gap-y-5 p-2"
+                        style={{ gridTemplateColumns: `repeat(${Math.min(cat.children.length, 4)}, minmax(10rem, max-content))` }}
+                      >
+                        {cat.children.map((group) => (
+                          <div key={group.id}>
+                            <Link
+                              href={`/products?category=${encodeURIComponent(group.id)}`}
+                              className="block font-semibold text-foreground hover:text-primary whitespace-nowrap"
+                            >
+                              {group.name}
+                            </Link>
+                            {group.children.length > 0 && (
+                              <ul className="mt-1.5 space-y-1">
+                                {group.children.slice(0, 8).map((leaf) => (
+                                  <li key={leaf.id}>
+                                    <Link
+                                      href={`/products?category=${encodeURIComponent(leaf.id)}`}
+                                      className="text-muted hover:text-primary whitespace-nowrap"
+                                    >
+                                      {leaf.name}
+                                    </Link>
+                                  </li>
+                                ))}
+                                {group.children.length > 8 && (
+                                  <li>
+                                    <Link
+                                      href={`/products?category=${encodeURIComponent(group.id)}`}
+                                      className="text-primary hover:underline text-xs"
+                                    >
+                                      {fmt(t.common.viewAllCount, { n: group.children.length })}
+                                    </Link>
+                                  </li>
+                                )}
+                              </ul>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      /* Plain subcategories: a single list, top to bottom. */
+                      <ul className="flex flex-col">
+                        {cat.children.map((group) => (
+                          <li key={group.id}>
+                            <Link
+                              href={`/products?category=${encodeURIComponent(group.id)}`}
+                              className="block px-3 py-2 rounded-btn text-foreground hover:bg-primary-soft hover:text-primary whitespace-nowrap"
+                            >
+                              {group.name}
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                   </div>
                 </div>
               )}
