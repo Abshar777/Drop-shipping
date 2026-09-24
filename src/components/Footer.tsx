@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { getT } from "@/lib/i18n/server";
 import { fmt } from "@/lib/i18n";
+import HideOnAdmin from "@/components/HideOnAdmin";
 
 export default async function Footer() {
   const { t } = await getT();
 
   return (
+    <HideOnAdmin>
     <footer className="bg-footer text-footer-foreground mt-16">
       <div className="max-w-7xl mx-auto px-4 py-10 grid grid-cols-1 sm:grid-cols-3 gap-8">
         <div>
@@ -31,5 +33,6 @@ export default async function Footer() {
         {fmt(t.footer.rights, { year: new Date().getFullYear() })}
       </div>
     </footer>
+    </HideOnAdmin>
   );
 }

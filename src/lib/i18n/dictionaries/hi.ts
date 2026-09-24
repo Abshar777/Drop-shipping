@@ -17,6 +17,7 @@ const hi: Dictionary = {
     viewAllCount: "सभी {n} देखें",
     loading: "लोड हो रहा है...",
     language: "भाषा",
+    admin: "एडमिन",
   },
   home: {
     heroTitle: "ट्रेंडिंग चीज़ें, सीधे आपके दरवाज़े तक।",

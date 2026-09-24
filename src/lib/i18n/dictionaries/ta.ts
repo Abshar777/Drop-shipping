@@ -17,6 +17,7 @@ const ta: Dictionary = {
     viewAllCount: "அனைத்து {n} ஐயும் காண்க",
     loading: "ஏற்றுகிறது...",
     language: "மொழி",
+    admin: "நிர்வாகம்",
   },
   home: {
     heroTitle: "பிரபலமான பொருட்கள், உங்கள் வீட்டு வாசலுக்கே.",

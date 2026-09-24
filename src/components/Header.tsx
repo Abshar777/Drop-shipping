@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useCart } from "@/lib/cart-context";
 import { useT } from "@/lib/i18n/client";
 import { fmt } from "@/lib/i18n";
@@ -12,14 +12,17 @@ import CategoryIcon from "@/components/CategoryIcon";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 
 type CurrentUser = { id: string; name: string; email: string };
+type CurrentAdmin = { id: string; name: string };
 
 export default function Header() {
   const { itemCount } = useCart();
   const t = useT();
   const router = useRouter();
+  const pathname = usePathname();
   const [query, setQuery] = useState("");
   const [user, setUser] = useState<CurrentUser | null>(null);
   const [userLoaded, setUserLoaded] = useState(false);
+  const [admin, setAdmin] = useState<CurrentAdmin | null>(null);
   const [categories, setCategories] = useState<CategoryNode[]>([]);
 
   useEffect(() => {
@@ -27,6 +30,7 @@ export default function Header() {
       .then((res) => res.json())
       .then((data) => {
         setUser(data.user);
+        setAdmin(data.admin ?? null);
         setUserLoaded(true);
       });
     fetch("/api/categories")
@@ -41,6 +45,9 @@ export default function Header() {
     router.push("/");
     router.refresh();
   }
+
+  // The admin has its own shell; keep the storefront chrome off those pages (login included).
+  if (pathname.startsWith("/admin")) return null;
 
   return (
     <header className="sticky top-0 z-50 bg-background border-b border-border">
@@ -68,6 +75,19 @@ export default function Header() {
           </form>
 
           <div className="flex items-center gap-4 shrink-0">
+            {admin && (
+              <Link
+                href="/admin"
+                title={admin.name}
+                className="hidden sm:inline-flex items-center gap-1.5 text-sm font-medium bg-primary-soft text-primary px-3 py-1.5 rounded-btn hover:bg-primary hover:text-primary-foreground"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 3l7 3v5c0 5-3.5 8.5-7 10-3.5-1.5-7-5-7-10V6l7-3z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9.5 12l1.8 1.8L15 10" />
+                </svg>
+                {t.common.admin}
+              </Link>
+            )}
             <LanguageSwitcher className="hidden sm:flex" />
 
             {userLoaded && (
@@ -119,6 +139,19 @@ export default function Header() {
         {/* Category bar: icon above name. Scrolls on small screens; wraps and shows hover menus on md+. */}
         <nav className="flex items-start gap-1 sm:gap-2 overflow-x-auto md:overflow-visible md:flex-wrap md:justify-center py-1.5 text-sm">
           <LanguageSwitcher className="sm:hidden shrink-0 self-center me-2" />
+            {admin && (
+              <Link
+                href="/admin"
+                title={admin.name}
+                className="sm:hidden shrink-0 self-center me-2 inline-flex items-center gap-1.5 text-sm font-medium bg-primary-soft text-primary px-3 py-1.5 rounded-btn hover:bg-primary hover:text-primary-foreground"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 3l7 3v5c0 5-3.5 8.5-7 10-3.5-1.5-7-5-7-10V6l7-3z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9.5 12l1.8 1.8L15 10" />
+                </svg>
+                {t.common.admin}
+              </Link>
+            )}
           {/* Fixed-width tiles that scroll on small screens; on md+ they flex between 4.5rem and 6.5rem so a full bar fits one row. */}
           {categories.map((cat) => (
             <div

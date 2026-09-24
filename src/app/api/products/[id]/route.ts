@@ -47,6 +47,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
           ? body.layout
           : undefined
         : current.layout,
+    type: body.type !== undefined ? (body.type === "digital" ? "digital" : undefined) : current.type,
   };
 
   products[index] = updated;

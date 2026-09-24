@@ -17,6 +17,7 @@ const ar: Dictionary = {
     viewAllCount: "عرض الكل ({n})",
     loading: "جارٍ التحميل...",
     language: "اللغة",
+    admin: "لوحة الإدارة",
   },
   home: {
     heroTitle: "أحدث المنتجات الرائجة، تصلك حتى باب منزلك.",

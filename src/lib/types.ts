@@ -14,6 +14,8 @@ export type Product = {
   description: string;
   /** Product page design; omitted = store theme. */
   layout?: ProductLayout;
+  /** Physical goods are shipped; digital ones are delivered as files. Omitted = physical. */
+  type?: "physical" | "digital";
   rating: number;
   reviewCount: number;
   stock: number;
@@ -24,6 +26,9 @@ export type CartItem = {
   productId: string;
   quantity: number;
 };
+
+export const ORDER_STATUSES = ["pending", "processing", "shipped", "delivered", "cancelled", "refunded"] as const;
+export type OrderStatus = (typeof ORDER_STATUSES)[number];
 
 export type Order = {
   id: string;
@@ -37,7 +42,10 @@ export type Order = {
   state: string;
   pincode: string;
   createdAt: string;
-  status: "pending" | "processing" | "shipped" | "delivered";
+  status: OrderStatus;
+  /** Set when a signed-in customer placed the order. */
+  userId?: string;
+  paymentMethod?: "cod";
 };
 
 export type User = {
@@ -67,4 +75,17 @@ export type Category = {
   source?: "store" | "meesho" | "noon";
   /** Icon shown in the category bar. Omitted = guessed from the name (see lib/category-icons). */
   icon?: string;
+};
+
+/** One stock movement, for the inventory history. */
+export type InventoryEntry = {
+  id: string;
+  productId: string;
+  productName: string;
+  delta: number;
+  before: number;
+  after: number;
+  reason: string;
+  by: string;
+  at: string;
 };

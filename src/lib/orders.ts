@@ -18,3 +18,12 @@ export async function addOrder(order: Order): Promise<void> {
   orders.unshift(order);
   await fs.writeFile(ORDERS_PATH, JSON.stringify(orders, null, 2), "utf-8");
 }
+
+export async function saveOrders(orders: Order[]): Promise<void> {
+  await fs.writeFile(ORDERS_PATH, JSON.stringify(orders, null, 2), "utf-8");
+}
+
+export async function getOrderById(id: string): Promise<Order | undefined> {
+  const orders = await getOrders();
+  return orders.find((o) => o.id === id);
+}

@@ -17,6 +17,7 @@ const ml: Dictionary = {
     viewAllCount: "എല്ലാ {n} എണ്ണവും കാണുക",
     loading: "ലോഡ് ചെയ്യുന്നു...",
     language: "ഭാഷ",
+    admin: "അഡ്മിൻ",
   },
   home: {
     heroTitle: "ട്രെൻഡിംഗ് ഉൽപ്പന്നങ്ങൾ, നിങ്ങളുടെ വീട്ടുപടിക്കൽ.",

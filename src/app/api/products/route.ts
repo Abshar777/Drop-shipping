@@ -47,6 +47,7 @@ export async function POST(request: Request) {
     images: body.images?.length ? body.images : ["https://picsum.photos/seed/" + slug + "/600/600"],
     description: sanitizeHtml(typeof body.description === "string" ? body.description : ""),
     layout: isProductLayout(body.layout) && body.layout !== "default" ? body.layout : undefined,
+    type: body.type === "digital" ? "digital" : undefined,
     rating: 0,
     reviewCount: 0,
     stock: Number(body.stock) || 0,

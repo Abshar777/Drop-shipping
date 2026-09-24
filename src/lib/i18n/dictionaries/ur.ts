@@ -17,6 +17,7 @@ const ur: Dictionary = {
     viewAllCount: "سب {n} دیکھیں",
     loading: "لوڈ ہو رہا ہے...",
     language: "زبان",
+    admin: "ایڈمن",
   },
   home: {
     heroTitle: "ٹرینڈنگ چیزیں، سیدھی آپ کے دروازے تک۔",

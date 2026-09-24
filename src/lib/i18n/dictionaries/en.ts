@@ -17,6 +17,7 @@ const en = {
     viewAllCount: "View all {n}",
     loading: "Loading...",
     language: "Language",
+    admin: "Admin",
   },
   home: {
     heroTitle: "Trending finds, delivered to your door.",
