@@ -15,6 +15,13 @@ import { CartProvider } from "@/lib/cart-context";
 import { LocaleProvider } from "@/lib/i18n/client";
 import { getT } from "@/lib/i18n/server";
 import { getThemeSettings } from "@/lib/theme-store";
+import { getCategories } from "@/lib/categories";
+import { buildCategoryTree } from "@/lib/category-tree";
+import { getAdminSession } from "@/lib/require-admin";
+import { getSubjectId } from "@/lib/session-store";
+import { findUserById } from "@/lib/users";
+import { CUSTOMER_COOKIE, CUSTOMER_SESSION_FILE } from "@/lib/auth-constants";
+import { cookies } from "next/headers";
 import { resolveTheme, themeCssVars } from "@/lib/themes";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -107,7 +114,18 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const [{ locale, t, dir }, themeSettings] = await Promise.all([getT(), getThemeSettings()]);
+  const cookieStore = await cookies();
+  const customerId = await getSubjectId(CUSTOMER_SESSION_FILE, cookieStore.get(CUSTOMER_COOKIE)?.value);
+  const [{ locale, t, dir }, themeSettings, allCategories, adminSession, customer] = await Promise.all([
+    getT(),
+    getThemeSettings(),
+    getCategories(),
+    getAdminSession(),
+    customerId ? findUserById(customerId) : Promise.resolve(undefined),
+  ]);
+  const categoryTree = buildCategoryTree(allCategories, { enabledOnly: true });
+  const headerUser = customer ? { id: customer.id, name: customer.name, email: customer.email } : null;
+  const headerAdmin = adminSession ? { id: adminSession.id, name: adminSession.name } : null;
   const theme = resolveTheme(themeSettings);
   const themeStyle = {
     ...themeCssVars(theme),
@@ -119,7 +137,7 @@ export default async function RootLayout({
       <body className="min-h-full flex flex-col">
         <LocaleProvider locale={locale} dictionary={t} dir={dir}>
           <CartProvider>
-            <Header />
+            <Header user={headerUser} admin={headerAdmin} categories={categoryTree} />
             <main className="flex-1">{children}</main>
             <Footer />
           </CartProvider>

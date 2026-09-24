@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useCart } from "@/lib/cart-context";
 import { useT } from "@/lib/i18n/client";
@@ -11,37 +11,32 @@ import { resolveCategoryIcon } from "@/lib/category-icons";
 import CategoryIcon from "@/components/CategoryIcon";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 
-type CurrentUser = { id: string; name: string; email: string };
-type CurrentAdmin = { id: string; name: string };
+export type HeaderUser = { id: string; name: string; email: string };
+export type HeaderAdmin = { id: string; name: string };
 
-export default function Header() {
+/**
+ * Storefront header. The signed-in customer, the admin session, and the enabled category
+ * tree come from the root layout on every request, so logging in or out anywhere (and the
+ * router.refresh() that follows) updates the header immediately.
+ */
+export default function Header({
+  user,
+  admin,
+  categories,
+}: {
+  user: HeaderUser | null;
+  admin: HeaderAdmin | null;
+  categories: CategoryNode[];
+}) {
   const { itemCount } = useCart();
   const t = useT();
   const router = useRouter();
   const pathname = usePathname();
   const [query, setQuery] = useState("");
-  const [user, setUser] = useState<CurrentUser | null>(null);
-  const [userLoaded, setUserLoaded] = useState(false);
-  const [admin, setAdmin] = useState<CurrentAdmin | null>(null);
-  const [categories, setCategories] = useState<CategoryNode[]>([]);
-
-  useEffect(() => {
-    fetch("/api/auth/me")
-      .then((res) => res.json())
-      .then((data) => {
-        setUser(data.user);
-        setAdmin(data.admin ?? null);
-        setUserLoaded(true);
-      });
-    fetch("/api/categories")
-      .then((res) => res.json())
-      .then((data) => setCategories(Array.isArray(data.tree) ? data.tree : []))
-      .catch(() => setCategories([]));
-  }, []);
+  const userLoaded = true;
 
   async function handleLogout() {
     await fetch("/api/auth/logout", { method: "POST" });
-    setUser(null);
     router.push("/");
     router.refresh();
   }
