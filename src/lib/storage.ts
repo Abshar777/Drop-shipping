@@ -9,8 +9,9 @@ import fs from "fs/promises";
 import path from "path";
 
 const DATA_DIR = path.join(process.cwd(), "data");
-const REST_URL = process.env.UPSTASH_REDIS_REST_URL;
-const REST_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
+// Vercel's Upstash integration names these KV_REST_API_*; Upstash's own console uses UPSTASH_REDIS_REST_*.
+const REST_URL = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
+const REST_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
 
 /** True when writes go to the hosted database instead of the local files. */
 export const usingRemoteStore = Boolean(REST_URL && REST_TOKEN);
