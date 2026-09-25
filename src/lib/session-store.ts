@@ -1,30 +1,30 @@
-import fs from "fs/promises";
-import path from "path";
 import crypto from "crypto";
+import { readJson, writeJson } from "./storage";
 
 type SessionRecord = { token: string; subjectId: string; expiresAt: string };
 
 const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
-function sessionPath(filename: string) {
-  return path.join(process.cwd(), "data", filename);
-}
-
 async function readSessions(filename: string): Promise<SessionRecord[]> {
   try {
-    const raw = await fs.readFile(sessionPath(filename), "utf-8");
-    return JSON.parse(raw);
+    return await readJson<SessionRecord[]>(filename, []);
   } catch {
     return [];
   }
 }
 
 async function writeSessions(filename: string, sessions: SessionRecord[]) {
-  await fs.writeFile(sessionPath(filename), JSON.stringify(sessions, null, 2), "utf-8");
+  await writeJson(filename, sessions);
+}
+
+/** Expired sessions are dropped whenever the list is written, so the store does not grow forever. */
+function live(sessions: SessionRecord[]) {
+  const now = Date.now();
+  return sessions.filter((s) => new Date(s.expiresAt).getTime() >= now);
 }
 
 export async function createSession(filename: string, subjectId: string): Promise<string> {
-  const sessions = await readSessions(filename);
+  const sessions = live(await readSessions(filename));
   const token = crypto.randomBytes(32).toString("hex");
   const expiresAt = new Date(Date.now() + SESSION_TTL_MS).toISOString();
   sessions.push({ token, subjectId, expiresAt });
@@ -44,5 +44,5 @@ export async function getSubjectId(filename: string, token: string | undefined):
 export async function destroySession(filename: string, token: string | undefined) {
   if (!token) return;
   const sessions = await readSessions(filename);
-  await writeSessions(filename, sessions.filter((s) => s.token !== token));
+  await writeSessions(filename, live(sessions).filter((s) => s.token !== token));
 }

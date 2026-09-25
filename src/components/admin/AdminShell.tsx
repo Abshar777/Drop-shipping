@@ -6,7 +6,15 @@ import { useState, type ReactNode } from "react";
 import { ADMIN_NAV, type AdminNavItem } from "@/lib/admin-nav";
 
 /** Sidebar + top bar around every admin page. Sections collapse; the current page is highlighted. */
-export default function AdminShell({ adminName, children }: { adminName: string; children: ReactNode }) {
+export default function AdminShell({
+  adminName,
+  readOnly = false,
+  children,
+}: {
+  adminName: string;
+  readOnly?: boolean;
+  children: ReactNode;
+}) {
   const pathname = usePathname();
   const search = useSearchParams();
   const router = useRouter();
@@ -151,6 +159,12 @@ export default function AdminShell({ adminName, children }: { adminName: string;
             Log out
           </button>
         </header>
+        {readOnly && (
+          <div className="bg-red-600 text-white text-sm px-4 py-2 text-center">
+            This deployment has no database connected, so nothing you change here will be saved. In Vercel, open
+            Storage, create an Upstash Redis store, connect it to this project, and redeploy.
+          </div>
+        )}
         <main className="flex-1 p-4 md:p-8 max-w-7xl w-full mx-auto">{children}</main>
       </div>
     </div>

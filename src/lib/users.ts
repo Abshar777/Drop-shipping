@@ -1,9 +1,8 @@
-import fs from "fs/promises";
-import path from "path";
 import crypto from "crypto";
+import { readJson, writeJson } from "./storage";
 import type { User } from "./types";
 
-const USERS_PATH = path.join(process.cwd(), "data", "users.json");
+const USERS_FILE = "users.json";
 
 /**
  * Canonical form of an email for storage and comparison: trimmed and lower-cased.
@@ -13,26 +12,15 @@ export function normalizeEmail(email: string): string {
   return email.trim().toLowerCase();
 }
 
-/**
- * Read all users. A missing file means "no users yet"; a corrupt file throws so we
- * never overwrite real accounts with a fresh list by mistake.
- */
+/** All users. A missing store means "no users yet"; corrupt data throws rather than being replaced. */
 export async function getUsers(): Promise<User[]> {
-  let raw: string;
-  try {
-    raw = await fs.readFile(USERS_PATH, "utf-8");
-  } catch (err) {
-    if ((err as NodeJS.ErrnoException).code === "ENOENT") return [];
-    throw err;
-  }
-  if (!raw.trim()) return [];
-  const parsed = JSON.parse(raw);
-  if (!Array.isArray(parsed)) throw new Error("users.json is not a list");
-  return parsed;
+  const users = await readJson<User[]>(USERS_FILE, []);
+  if (!Array.isArray(users)) throw new Error("users store is not a list");
+  return users;
 }
 
 export async function saveUsers(users: User[]): Promise<void> {
-  await fs.writeFile(USERS_PATH, JSON.stringify(users, null, 2) + "\n", "utf-8");
+  await writeJson(USERS_FILE, users);
 }
 
 export async function findUserByEmail(email: string): Promise<User | undefined> {
@@ -46,8 +34,8 @@ export async function findUserById(id: string): Promise<User | undefined> {
   return users.find((u) => u.id === id);
 }
 
-// Serialises read-modify-write on users.json within this process, so two sign-ups that
-// arrive at the same moment cannot both pass the duplicate check and both be saved.
+// Serialises read-modify-write within this process, so two sign-ups that arrive at the
+// same moment cannot both pass the duplicate check and both be saved.
 let queue: Promise<unknown> = Promise.resolve();
 function withUsersLock<T>(work: () => Promise<T>): Promise<T> {
   const run = queue.then(work, work);

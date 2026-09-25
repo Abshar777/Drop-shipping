@@ -1,5 +1,4 @@
-import fs from "fs/promises";
-import path from "path";
+import { readJson, writeJson } from "./storage";
 import {
   DEFAULT_THEME_SETTINGS,
   THEME_COLOR_KEYS,
@@ -13,7 +12,7 @@ import {
   type ThemeSettings,
 } from "./themes";
 
-const THEME_PATH = path.join(process.cwd(), "data", "theme.json");
+const THEME_FILE = "theme.json";
 
 function sanitizeOverrides(input: unknown): ThemeOverrides {
   const raw = (input ?? {}) as Partial<ThemeOverrides>;
@@ -56,13 +55,12 @@ export function sanitizeThemeSettings(input: unknown): ThemeSettings {
 
 export async function getThemeSettings(): Promise<ThemeSettings> {
   try {
-    const raw = await fs.readFile(THEME_PATH, "utf-8");
-    return sanitizeThemeSettings(JSON.parse(raw));
+    return sanitizeThemeSettings(await readJson<unknown>(THEME_FILE, DEFAULT_THEME_SETTINGS));
   } catch {
     return DEFAULT_THEME_SETTINGS;
   }
 }
 
 export async function saveThemeSettings(settings: ThemeSettings): Promise<void> {
-  await fs.writeFile(THEME_PATH, JSON.stringify(settings, null, 2) + "\n", "utf-8");
+  await writeJson(THEME_FILE, settings);
 }

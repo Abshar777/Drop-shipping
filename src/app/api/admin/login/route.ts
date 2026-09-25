@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { findAdminByEmail } from "@/lib/admins";
+import { findAdminByEmail, ensureBootstrapAdmin } from "@/lib/admins";
 import { verifyPassword } from "@/lib/password";
 import { createSession } from "@/lib/session-store";
 import { ADMIN_SESSION_FILE, ADMIN_COOKIE, SESSION_MAX_AGE } from "@/lib/auth-constants";
 
 export async function POST(request: Request) {
   const { email, password } = await request.json();
+  await ensureBootstrapAdmin().catch((err) => console.error("[admin bootstrap] failed:", err));
   const admin = await findAdminByEmail(email || "");
 
   if (!admin || !(await verifyPassword(password || "", admin.passwordHash))) {

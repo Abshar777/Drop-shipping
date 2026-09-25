@@ -1,18 +1,16 @@
-import fs from "fs/promises";
-import path from "path";
 import crypto from "crypto";
+import { readJson, writeJson } from "./storage";
 import { getProducts, saveProducts } from "./products";
 import type { InventoryEntry, Product } from "./types";
 
-const LOG_PATH = path.join(process.cwd(), "data", "inventory-log.json");
+const LOG_FILE = "inventory-log.json";
 
 /** Products at or below this stock count as "low stock" across the admin. */
 export const LOW_STOCK_THRESHOLD = 5;
 
 export async function getInventoryLog(): Promise<InventoryEntry[]> {
   try {
-    const raw = await fs.readFile(LOG_PATH, "utf-8");
-    return JSON.parse(raw);
+    return await readJson<InventoryEntry[]>(LOG_FILE, []);
   } catch {
     return [];
   }
@@ -22,7 +20,7 @@ async function appendLog(entries: InventoryEntry[]): Promise<void> {
   if (entries.length === 0) return;
   const log = await getInventoryLog();
   log.unshift(...entries);
-  await fs.writeFile(LOG_PATH, JSON.stringify(log.slice(0, 2000), null, 2) + "\n", "utf-8");
+  await writeJson(LOG_FILE, log.slice(0, 2000));
 }
 
 export type StockChange = { productId: string; delta: number };

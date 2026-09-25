@@ -1,12 +1,10 @@
-import fs from "fs/promises";
-import path from "path";
+import { readJson, writeJson } from "./storage";
 import type { Product } from "./types";
 
-const PRODUCTS_PATH = path.join(process.cwd(), "data", "products.json");
+const PRODUCTS_FILE = "products.json";
 
 export async function getProducts(): Promise<Product[]> {
-  const raw = await fs.readFile(PRODUCTS_PATH, "utf-8");
-  return JSON.parse(raw);
+  return readJson<Product[]>(PRODUCTS_FILE, []);
 }
 
 export async function getProductBySlug(slug: string): Promise<Product | undefined> {
@@ -20,7 +18,7 @@ export async function getProductById(id: string): Promise<Product | undefined> {
 }
 
 export async function saveProducts(products: Product[]): Promise<void> {
-  await fs.writeFile(PRODUCTS_PATH, JSON.stringify(products, null, 2), "utf-8");
+  await writeJson(PRODUCTS_FILE, products);
 }
 
 export async function getCategories(): Promise<string[]> {

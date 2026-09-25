@@ -2,9 +2,11 @@ import { NextResponse } from "next/server";
 import fs from "fs/promises";
 import path from "path";
 import crypto from "crypto";
+import { put } from "@vercel/blob";
 import { isAdminAuthenticated } from "@/lib/require-admin";
 
-// Uploaded product images live in public/uploads and are served as /uploads/<file>.
+// Locally, uploads go to public/uploads and are served as /uploads/<file>.
+// On Vercel the disk is read-only, so with BLOB_READ_WRITE_TOKEN set they go to Vercel Blob instead.
 const UPLOAD_DIR = path.join(process.cwd(), "public", "uploads");
 const MAX_BYTES = 5 * 1024 * 1024;
 const EXTENSIONS: Record<string, string> = {
@@ -13,6 +15,7 @@ const EXTENSIONS: Record<string, string> = {
   "image/webp": "webp",
   "image/gif": "gif",
 };
+const useBlob = Boolean(process.env.BLOB_READ_WRITE_TOKEN);
 
 /** POST /api/admin/uploads  multipart form with one or more `files` -> { urls }  (admin only) */
 export async function POST(request: Request) {
@@ -44,14 +47,29 @@ export async function POST(request: Request) {
     }
   }
 
-  await fs.mkdir(UPLOAD_DIR, { recursive: true });
-
-  const urls: string[] = [];
-  for (const file of files) {
-    const name = `${Date.now()}-${crypto.randomBytes(4).toString("hex")}.${EXTENSIONS[file.type]}`;
-    await fs.writeFile(path.join(UPLOAD_DIR, name), Buffer.from(await file.arrayBuffer()));
-    urls.push(`/uploads/${name}`);
+  if (process.env.VERCEL && !useBlob) {
+    return NextResponse.json(
+      { error: "Image uploads need Vercel Blob storage. Add the Blob store in Vercel, then redeploy." },
+      { status: 503 }
+    );
   }
 
-  return NextResponse.json({ urls }, { status: 201 });
+  try {
+    const urls: string[] = [];
+    for (const file of files) {
+      const name = `${Date.now()}-${crypto.randomBytes(4).toString("hex")}.${EXTENSIONS[file.type]}`;
+      if (useBlob) {
+        const blob = await put(`uploads/${name}`, file, { access: "public", contentType: file.type });
+        urls.push(blob.url);
+      } else {
+        await fs.mkdir(UPLOAD_DIR, { recursive: true });
+        await fs.writeFile(path.join(UPLOAD_DIR, name), Buffer.from(await file.arrayBuffer()));
+        urls.push(`/uploads/${name}`);
+      }
+    }
+    return NextResponse.json({ urls }, { status: 201 });
+  } catch (err) {
+    console.error("[uploads] failed:", err);
+    return NextResponse.json({ error: "The image could not be saved. Please try again." }, { status: 500 });
+  }
 }

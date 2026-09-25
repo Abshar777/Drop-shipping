@@ -1,13 +1,11 @@
-import fs from "fs/promises";
-import path from "path";
+import { readJson, writeJson } from "./storage";
 import type { Category } from "./types";
 
-const CATEGORIES_PATH = path.join(process.cwd(), "data", "categories.json");
+const CATEGORIES_FILE = "categories.json";
 
 export async function getCategories(): Promise<Category[]> {
   try {
-    const raw = await fs.readFile(CATEGORIES_PATH, "utf-8");
-    const list = JSON.parse(raw) as Category[];
+    const list = await readJson<Category[]>(CATEGORIES_FILE, []);
     return list.sort((a, b) => a.order - b.order);
   } catch {
     return [];
@@ -15,7 +13,7 @@ export async function getCategories(): Promise<Category[]> {
 }
 
 export async function saveCategories(categories: Category[]): Promise<void> {
-  await fs.writeFile(CATEGORIES_PATH, JSON.stringify(categories, null, 2) + "\n", "utf-8");
+  await writeJson(CATEGORIES_FILE, categories);
 }
 
 export async function getCategoryById(id: string): Promise<Category | undefined> {

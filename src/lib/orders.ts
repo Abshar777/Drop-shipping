@@ -1,26 +1,24 @@
-import fs from "fs/promises";
-import path from "path";
+import { readJson, writeJson } from "./storage";
 import type { Order } from "./types";
 
-const ORDERS_PATH = path.join(process.cwd(), "data", "orders.json");
+const ORDERS_FILE = "orders.json";
 
 export async function getOrders(): Promise<Order[]> {
   try {
-    const raw = await fs.readFile(ORDERS_PATH, "utf-8");
-    return JSON.parse(raw);
+    return await readJson<Order[]>(ORDERS_FILE, []);
   } catch {
     return [];
   }
 }
 
+export async function saveOrders(orders: Order[]): Promise<void> {
+  await writeJson(ORDERS_FILE, orders);
+}
+
 export async function addOrder(order: Order): Promise<void> {
   const orders = await getOrders();
   orders.unshift(order);
-  await fs.writeFile(ORDERS_PATH, JSON.stringify(orders, null, 2), "utf-8");
-}
-
-export async function saveOrders(orders: Order[]): Promise<void> {
-  await fs.writeFile(ORDERS_PATH, JSON.stringify(orders, null, 2), "utf-8");
+  await saveOrders(orders);
 }
 
 export async function getOrderById(id: string): Promise<Order | undefined> {
