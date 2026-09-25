@@ -3,12 +3,26 @@ import { getProducts } from "@/lib/products";
 import { getCategories } from "@/lib/categories";
 import { buildCategoryTree } from "@/lib/category-tree";
 import { getT } from "@/lib/i18n/server";
+import { fmt } from "@/lib/i18n";
+import { cookies } from "next/headers";
+import { getSubjectId } from "@/lib/session-store";
+import { findUserById } from "@/lib/users";
+import { CUSTOMER_COOKIE, CUSTOMER_SESSION_FILE } from "@/lib/auth-constants";
 import { resolveCategoryIcon } from "@/lib/category-icons";
 import CategoryIcon from "@/components/CategoryIcon";
 import ProductCard from "@/components/ProductCard";
 
-export default async function Home() {
-  const [products, allCategories, { t }] = await Promise.all([getProducts(), getCategories(), getT()]);
+export default async function Home({ searchParams }: { searchParams: Promise<{ welcome?: string }> }) {
+  const [products, allCategories, { t }, { welcome }] = await Promise.all([getProducts(), getCategories(), getT(), searchParams]);
+
+  // Right after sign-up the form sends people here with ?welcome=1; greet them by name.
+  let welcomeName: string | null = null;
+  if (welcome) {
+    const cookieStore = await cookies();
+    const userId = await getSubjectId(CUSTOMER_SESSION_FILE, cookieStore.get(CUSTOMER_COOKIE)?.value);
+    const user = userId ? await findUserById(userId).catch(() => undefined) : undefined;
+    welcomeName = user?.name ?? null;
+  }
   const featured = products.filter((p) => p.tags?.includes("featured"));
   const trending = products.filter((p) => p.tags?.includes("trending"));
 
@@ -17,6 +31,14 @@ export default async function Home() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6">
+      {welcomeName && (
+        <div role="status" className="mb-4 flex items-center justify-between gap-3 rounded-card border border-green-300 bg-green-50 px-4 py-3 text-sm text-green-800">
+          <span>{fmt(t.home.welcome, { name: welcomeName })}</span>
+          <Link href="/" className="text-green-700 hover:underline shrink-0" aria-label="Dismiss">
+            ✕
+          </Link>
+        </div>
+      )}
       <section className="rounded-card bg-hero text-hero-foreground px-6 py-12 sm:px-12 sm:py-16 mb-10">
         <h1 className="text-3xl sm:text-4xl font-extrabold max-w-xl">{t.home.heroTitle}</h1>
         <p className="mt-3 opacity-80 max-w-lg">{t.home.heroSubtitle}</p>
