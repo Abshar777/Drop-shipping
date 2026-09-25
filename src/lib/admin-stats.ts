@@ -1,7 +1,7 @@
 import { getOrders } from "./orders";
 import { getProducts } from "./products";
 import { getCustomers } from "./customers";
-import { LOW_STOCK_THRESHOLD } from "./inventory";
+import { isLowStock } from "./product-utils";
 import type { Order, Product } from "./types";
 
 const REVENUE_STATUSES = new Set(["pending", "processing", "shipped", "delivered"]);
@@ -46,7 +46,7 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     ordersYesterday: yesterdays.length,
     customers: customers.length,
     pendingOrders: orders.filter((o) => o.status === "pending").length,
-    lowStock: products.filter((p) => p.stock <= LOW_STOCK_THRESHOLD).sort((a, b) => a.stock - b.stock),
+    lowStock: products.filter(isLowStock).sort((a, b) => a.stock - b.stock),
     refunds: { count: refunded.length, amount: refunded.reduce((s, o) => s + o.total, 0) },
     recentOrders: [...orders].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 8),
   };

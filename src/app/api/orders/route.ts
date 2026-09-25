@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { addOrder, getOrders } from "@/lib/orders";
 import { getProductById } from "@/lib/products";
 import { adjustStock } from "@/lib/inventory";
+import { isDigital } from "@/lib/product-utils";
 import { isAdminAuthenticated } from "@/lib/require-admin";
 import { getSubjectId } from "@/lib/session-store";
 import { CUSTOMER_COOKIE, CUSTOMER_SESSION_FILE } from "@/lib/auth-constants";
@@ -27,7 +28,10 @@ export async function POST(request: Request) {
   let total = 0;
   for (const item of items) {
     const product = await getProductById(item.productId);
-    if (product) total += product.price * item.quantity;
+    if (!product) continue;
+    // Downloads are bought once; physical items need a whole positive quantity.
+    item.quantity = isDigital(product) ? 1 : Math.max(1, Math.floor(Number(item.quantity) || 1));
+    total += product.price * item.quantity;
   }
 
   // Link the order to the customer account when they are signed in.

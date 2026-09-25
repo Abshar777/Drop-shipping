@@ -5,9 +5,10 @@ import { buildCategoryTree, categoryPath, descendantIds, type CategoryNode } fro
 import { getT } from "@/lib/i18n/server";
 import { fmt } from "@/lib/i18n";
 import { stripHtml } from "@/lib/html";
+import { isDigital } from "@/lib/product-utils";
 import ProductCard from "@/components/ProductCard";
 
-type SearchParams = { category?: string; q?: string };
+type SearchParams = { category?: string; q?: string; type?: string };
 
 function CategoryList({
   nodes,
@@ -54,7 +55,7 @@ export default async function ProductsPage({
 }: {
   searchParams: Promise<SearchParams>;
 }) {
-  const { category: categoryParam, q } = await searchParams;
+  const { category: categoryParam, q, type: typeParam } = await searchParams;
   const [products, allCategories, { t }] = await Promise.all([getProducts(), getCategories(), getT()]);
   const tree = buildCategoryTree(allCategories, { enabledOnly: true });
 
@@ -80,6 +81,24 @@ export default async function ProductsPage({
       (p) => p.name.toLowerCase().includes(query) || stripHtml(p.description).toLowerCase().includes(query)
     );
   }
+
+  // Physical / digital filter, shown only once the store sells downloads.
+  const type = typeParam === "digital" || typeParam === "physical" ? typeParam : undefined;
+  const hasDigital = products.some(isDigital);
+  if (type) filtered = filtered.filter((p) => isDigital(p) === (type === "digital"));
+  const typeHref = (value?: string) => {
+    const params = new URLSearchParams();
+    if (selected) params.set("category", selected.id);
+    if (q) params.set("q", q);
+    if (value) params.set("type", value);
+    const query = params.toString();
+    return query ? `/products?${query}` : "/products";
+  };
+  const typeChips: Array<[string, string]> = [
+    ["", t.products.typeAll],
+    ["physical", t.products.typePhysical],
+    ["digital", t.products.typeDigital],
+  ];
 
   const heading = q ? fmt(t.products.searchResults, { q }) : selected?.name ?? t.products.allProducts;
 
@@ -116,7 +135,24 @@ export default async function ProductsPage({
             </nav>
           )}
           <h1 className="text-2xl font-bold text-foreground mb-1">{heading}</h1>
-          <p className="text-sm text-muted mb-6">{fmt(t.products.found, { n: filtered.length })}</p>
+          <p className="text-sm text-muted mb-4">{fmt(t.products.found, { n: filtered.length })}</p>
+
+          {hasDigital && (
+            <div className="flex flex-wrap items-center gap-2 mb-6 text-sm">
+              <span className="text-muted">{t.products.typeFilter}:</span>
+              {typeChips.map(([value, label]) => (
+                <Link
+                  key={value}
+                  href={typeHref(value || undefined)}
+                  className={`px-3 py-1 rounded-full border transition-colors ${
+                    (type ?? "") === value ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted hover:text-primary"
+                  }`}
+                >
+                  {label}
+                </Link>
+              ))}
+            </div>
+          )}
 
           {filtered.length === 0 ? (
             <p className="text-muted">{t.products.none}</p>

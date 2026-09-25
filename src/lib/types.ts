@@ -1,6 +1,21 @@
 /** Which product page design a product uses. */
 export type ProductLayout = "default" | "amazon" | "flipkart";
 
+export type ProductDimensions = { length?: number; width?: number; height?: number };
+
+/** Delivery details for a digital product (file sold as a download). */
+export type DigitalDetails = {
+  fileUrl?: string;
+  fileName?: string;
+  fileSizeBytes?: number;
+  /** How many times a buyer may download; omitted = unlimited. */
+  downloadLimit?: number;
+  /** Days the download stays available after purchase; omitted = no expiry. */
+  downloadExpiryDays?: number;
+};
+
+export type ProductSeo = { title?: string; description?: string };
+
 export type Product = {
   id: string;
   slug: string;
@@ -16,6 +31,19 @@ export type Product = {
   layout?: ProductLayout;
   /** Physical goods are shipped; digital ones are delivered as files. Omitted = physical. */
   type?: "physical" | "digital";
+  videoUrl?: string;
+  collection?: string;
+  brand?: string;
+  sku?: string;
+  barcode?: string;
+  /** Per-product low-stock alert level; omitted = store default. */
+  lowStockThreshold?: number;
+  weightGrams?: number;
+  dimensionsCm?: ProductDimensions;
+  /** Physical products default to true. */
+  shippingRequired?: boolean;
+  digital?: DigitalDetails;
+  seo?: ProductSeo;
   rating: number;
   reviewCount: number;
   stock: number;

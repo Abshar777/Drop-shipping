@@ -39,11 +39,14 @@ export default function AddToCart({
   stock,
   variant = "theme",
   showQuantity = true,
+  digital = false,
 }: {
   productId: string;
   stock: number;
   variant?: Variant;
   showQuantity?: boolean;
+  /** Downloads are always available and are bought once, so no quantity picker. */
+  digital?: boolean;
 }) {
   const { addItem } = useCart();
   const t = useT();
@@ -51,21 +54,26 @@ export default function AddToCart({
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
   const s = STYLES[variant];
+  const purchasable = digital || stock > 0;
+
+  function add() {
+    addItem(productId, digital ? 1 : quantity, digital);
+  }
 
   function handleAdd() {
-    addItem(productId, quantity);
+    add();
     setAdded(true);
     setTimeout(() => setAdded(false), 1500);
   }
 
   function handleBuyNow() {
-    addItem(productId, quantity);
+    add();
     router.push("/cart");
   }
 
   return (
     <div className={s.wrap}>
-      {showQuantity && (
+      {showQuantity && !digital && (
         <div className="flex items-center gap-3">
           <label htmlFor="qty" className={s.label}>
             {t.product.quantity}
@@ -83,14 +91,14 @@ export default function AddToCart({
       <div className={s.buttons}>
         <button
           onClick={handleAdd}
-          disabled={stock === 0}
+          disabled={!purchasable}
           className={`${s.add} disabled:opacity-50 disabled:cursor-not-allowed`}
         >
           {added ? t.product.added : t.product.addToCart}
         </button>
         <button
           onClick={handleBuyNow}
-          disabled={stock === 0}
+          disabled={!purchasable}
           className={`${s.buy} disabled:opacity-50 disabled:cursor-not-allowed`}
         >
           {t.product.buyNow}

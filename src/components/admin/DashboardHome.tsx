@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { getDashboardStats } from "@/lib/admin-stats";
-import { LOW_STOCK_THRESHOLD } from "@/lib/inventory";
 import { formatPrice } from "@/lib/format";
 import { PageHeader, Card, StatusBadge, EmptyState, formatDate } from "./ui";
 
@@ -60,7 +59,7 @@ export default async function DashboardHome({ adminName }: { adminName: string }
         <Kpi
           label="Low stock"
           value={String(s.lowStock.length)}
-          hint={`${LOW_STOCK_THRESHOLD} or fewer left`}
+          hint="At or below their low-stock threshold"
           href="/admin/inventory?filter=low"
           tone={s.lowStock.length > 0 ? "danger" : "good"}
         />
@@ -116,7 +115,7 @@ export default async function DashboardHome({ adminName }: { adminName: string }
             </Link>
           </div>
           {s.lowStock.length === 0 ? (
-            <EmptyState>Every product has more than {LOW_STOCK_THRESHOLD} in stock.</EmptyState>
+            <EmptyState>Every physical product is above its low-stock threshold.</EmptyState>
           ) : (
             <ul className="divide-y divide-gray-100">
               {s.lowStock.slice(0, 8).map((p) => (

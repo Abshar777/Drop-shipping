@@ -2,8 +2,7 @@ import { NextResponse } from "next/server";
 import { getProducts, saveProducts } from "@/lib/products";
 import { getCategoryById } from "@/lib/categories";
 import { isAdminAuthenticated } from "@/lib/require-admin";
-import { sanitizeHtml } from "@/lib/html";
-import { isProductLayout } from "@/lib/product-layouts";
+import { parseProductInput, uniqueSlug } from "@/lib/product-input";
 import type { Product } from "@/lib/types";
 
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -12,13 +11,19 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   }
 
   const { id } = await params;
-  const body = await request.json();
+  let body: Record<string, unknown>;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+  }
+
   const products = await getProducts();
   const index = products.findIndex((p) => p.id === id);
-
   if (index === -1) {
     return NextResponse.json({ error: "Product not found" }, { status: 404 });
   }
+  const current = products[index];
 
   // If a categoryId is supplied, the display name follows the category tree.
   let categoryFields: { category?: string; categoryId?: string } = {};
@@ -32,22 +37,14 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     }
   }
 
-  const current = products[index];
+  const parsed = parseProductInput(body, current);
+  if (!parsed.ok) return NextResponse.json({ error: parsed.error }, { status: 400 });
+
   const updated: Product = {
     ...current,
-    ...body,
     ...categoryFields,
-    price: body.price !== undefined ? Number(body.price) : current.price,
-    compareAtPrice: body.compareAtPrice !== undefined ? Number(body.compareAtPrice) : current.compareAtPrice,
-    stock: body.stock !== undefined ? Number(body.stock) : current.stock,
-    description: body.description !== undefined ? sanitizeHtml(String(body.description)) : current.description,
-    layout:
-      body.layout !== undefined
-        ? isProductLayout(body.layout) && body.layout !== "default"
-          ? body.layout
-          : undefined
-        : current.layout,
-    type: body.type !== undefined ? (body.type === "digital" ? "digital" : undefined) : current.type,
+    ...parsed.fields,
+    slug: uniqueSlug(parsed.fields.slug, products, current.id),
   };
 
   products[index] = updated;

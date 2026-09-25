@@ -5,7 +5,8 @@ import type { CartItem } from "./types";
 
 type CartContextValue = {
   items: CartItem[];
-  addItem: (productId: string, quantity?: number) => void;
+  /** `single` keeps the item at quantity 1 (digital downloads are bought once). */
+  addItem: (productId: string, quantity?: number, single?: boolean) => void;
   removeItem: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;
@@ -37,10 +38,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   }, [items, loaded]);
 
-  function addItem(productId: string, quantity = 1) {
+  function addItem(productId: string, quantity = 1, single = false) {
     setItems((prev) => {
       const existing = prev.find((i) => i.productId === productId);
       if (existing) {
+        if (single) return prev;
         return prev.map((i) =>
           i.productId === productId ? { ...i, quantity: i.quantity + quantity } : i
         );

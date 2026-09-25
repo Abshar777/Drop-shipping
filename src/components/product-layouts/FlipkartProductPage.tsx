@@ -1,17 +1,21 @@
+import { Fragment, type ReactNode } from "react";
 import Link from "next/link";
 import type { Product } from "@/lib/types";
 import type { Dictionary } from "@/lib/i18n";
 import { fmt } from "@/lib/i18n";
 import { formatPrice } from "@/lib/format";
 import { descriptionBullets } from "@/lib/html";
+import { discountPercent, isDigital } from "@/lib/product-utils";
+import { productSpecRows } from "@/lib/product-specs";
 import AddToCart from "@/components/AddToCart";
 import ProductCard from "@/components/ProductCard";
 import ProductDescription from "@/components/ProductDescription";
+import ProductVideo from "@/components/ProductVideo";
 
 /**
  * Flipkart-style product page: sticky gallery with big Add to Cart / Buy Now under it,
  * green rating badge, special price, offers, highlights, description card.
- * Uses Flipkart's fixed palette rather than the store theme.
+ * Uses the Flipkart fixed palette rather than the store theme.
  */
 export default function FlipkartProductPage({
   product,
@@ -22,8 +26,18 @@ export default function FlipkartProductPage({
   related: Product[];
   t: Dictionary;
 }) {
-  const discount = product.compareAtPrice ? Math.round(100 - (product.price / product.compareAtPrice) * 100) : 0;
+  const discount = discountPercent(product);
   const bullets = descriptionBullets(product.description);
+  const digital = isDigital(product);
+  const specs = productSpecRows(product, t);
+
+  const offers: ReactNode[] = digital
+    ? [<b key="dl">{t.product.instantDownload}</b>, <span key="ship">{t.product.noShipping}</span>]
+    : [
+        <span key="free"><b>Free delivery</b> on this item</span>,
+        <span key="cod"><b>Cash on Delivery</b> available</span>,
+        <span key="rep"><b>7 days</b> replacement policy</span>,
+      ];
 
   return (
     <div className="bg-[#f1f3f6] py-4 text-[#212121]" style={{ colorScheme: "light", fontFamily: 'Roboto, Arial, "Helvetica Neue", sans-serif' }}>
@@ -51,7 +65,7 @@ export default function FlipkartProductPage({
               </div>
             </div>
             <div className="mt-4">
-              <AddToCart productId={product.id} stock={product.stock} variant="flipkart" showQuantity={false} />
+              <AddToCart productId={product.id} stock={product.stock} variant="flipkart" showQuantity={false} digital={digital} />
             </div>
           </div>
 
@@ -66,12 +80,18 @@ export default function FlipkartProductPage({
               <span className="mx-1">›</span>
               <span>{product.name}</span>
             </p>
-            <h1 className="text-lg font-normal mt-1.5">{product.name}</h1>
-            <div className="flex items-center gap-2 mt-2">
+            {product.brand && <p className="text-sm text-[#878787] mt-1.5">{product.brand}</p>}
+            <h1 className="text-lg font-normal mt-0.5">{product.name}</h1>
+            <div className="flex items-center gap-2 mt-2 flex-wrap">
               <span className="inline-flex items-center gap-1 bg-[#388e3c] text-white text-xs font-medium px-1.5 py-0.5 rounded-sm">
                 {product.rating} ★
               </span>
               <span className="text-sm text-[#878787] font-medium">{product.reviewCount} Ratings &amp; Reviews</span>
+              {digital && (
+                <span className="inline-flex items-center gap-1 bg-[#e3f2fd] text-[#2874f0] text-xs font-medium px-2 py-0.5 rounded-sm">
+                  ⬇ {t.product.digital}
+                </span>
+              )}
             </div>
 
             {discount > 0 && <p className="text-[#388e3c] text-sm font-medium mt-4">Special price</p>}
@@ -87,9 +107,12 @@ export default function FlipkartProductPage({
 
             <h2 className="font-medium mt-5 mb-2">Available offers</h2>
             <ul className="text-sm space-y-1.5">
-              <li className="flex gap-2"><span className="text-[#388e3c]">🏷</span><span><b>Free delivery</b> on this item</span></li>
-              <li className="flex gap-2"><span className="text-[#388e3c]">🏷</span><span><b>Cash on Delivery</b> available</span></li>
-              <li className="flex gap-2"><span className="text-[#388e3c]">🏷</span><span><b>7 days</b> replacement policy</span></li>
+              {offers.map((offer, i) => (
+                <li key={i} className="flex gap-2">
+                  <span className="text-[#388e3c]">🏷</span>
+                  {offer}
+                </li>
+              ))}
             </ul>
 
             <div className="grid grid-cols-[110px_1fr] gap-y-4 mt-6 text-sm">
@@ -103,10 +126,20 @@ export default function FlipkartProductPage({
               ) : (
                 <span className="text-[#878787]">No highlights added yet.</span>
               )}
+              {specs.map((row) => (
+                <Fragment key={row.label}>
+                  <span className="text-[#878787]">{row.label}</span>
+                  <span>{row.value}</span>
+                </Fragment>
+              ))}
               <span className="text-[#878787]">Availability</span>
-              <span className={product.stock > 0 ? "text-[#388e3c]" : "text-[#ff6161]"}>
-                {product.stock > 0 ? fmt(t.product.inStock, { n: product.stock }) : t.product.outOfStock}
-              </span>
+              {digital ? (
+                <span className="text-[#388e3c]">{t.product.alwaysAvailable}</span>
+              ) : (
+                <span className={product.stock > 0 ? "text-[#388e3c]" : "text-[#ff6161]"}>
+                  {product.stock > 0 ? fmt(t.product.inStock, { n: product.stock }) : t.product.outOfStock}
+                </span>
+              )}
             </div>
 
             <div className="mt-6 border border-[#f0f0f0]">
@@ -115,6 +148,15 @@ export default function FlipkartProductPage({
                 <ProductDescription text={product.description} className="leading-relaxed" />
               </div>
             </div>
+
+            {product.videoUrl && (
+              <div className="mt-4 border border-[#f0f0f0]">
+                <h2 className="px-4 py-3 text-lg font-medium border-b border-[#f0f0f0]">{t.product.video}</h2>
+                <div className="p-4">
+                  <ProductVideo url={product.videoUrl} className="rounded-sm" />
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

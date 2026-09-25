@@ -3,23 +3,24 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { formatPrice } from "@/lib/format";
+import { isDigital, isLowStock, lowStockThreshold } from "@/lib/product-utils";
 import type { Product } from "@/lib/types";
 import { PageHeader } from "./ui";
 
 const JSON_HEADERS = { "Content-Type": "application/json" };
-const LOW = 5;
 
 type Mode = "overview" | "low" | "adjust";
 
 const TITLES: Record<Mode, [string, string]> = {
   overview: ["Stock Overview", "Current stock for every product."],
-  low: ["Low Stock", `Products with ${LOW} or fewer left. Restock them before they sell out.`],
+  low: ["Low Stock", "Physical products at or below their low-stock threshold. Restock them before they sell out."],
   adjust: ["Stock Adjustment", "Add received stock or remove damaged items. Every change is recorded in the inventory history."],
 };
 
-function stockLabel(stock: number) {
-  if (stock === 0) return { text: "Out of stock", cls: "bg-red-100 text-red-700" };
-  if (stock <= LOW) return { text: "Low", cls: "bg-amber-100 text-amber-700" };
+function stockLabel(p: Product) {
+  if (isDigital(p)) return { text: "Digital", cls: "bg-purple-100 text-purple-700" };
+  if (p.stock === 0) return { text: "Out of stock", cls: "bg-red-100 text-red-700" };
+  if (isLowStock(p)) return { text: `Low (≤ ${lowStockThreshold(p)})`, cls: "bg-amber-100 text-amber-700" };
   return { text: "In stock", cls: "bg-green-100 text-green-700" };
 }
 
@@ -62,11 +63,12 @@ export default function InventoryTable({ mode = "overview" }: { mode?: Mode }) {
   }
 
   const rows = products
-    .filter((p) => (mode === "low" ? p.stock <= LOW : true))
+    .filter((p) => (mode === "low" ? isLowStock(p) : true))
     .filter((p) => !search || p.name.toLowerCase().includes(search.toLowerCase()))
     .sort((a, b) => a.stock - b.stock);
   const [title, description] = TITLES[mode];
-  const totalUnits = rows.reduce((s, p) => s + p.stock, 0);
+  const physical = rows.filter((p) => !isDigital(p));
+  const totalUnits = physical.reduce((s, p) => s + p.stock, 0);
 
   return (
     <div>
@@ -126,7 +128,8 @@ export default function InventoryTable({ mode = "overview" }: { mode?: Mode }) {
             </thead>
             <tbody>
               {rows.map((p) => {
-                const s = stockLabel(p.stock);
+                const s = stockLabel(p);
+                const digital = isDigital(p);
                 return (
                   <tr key={p.id} className={`border-t border-gray-100 ${busyId === p.id ? "opacity-50" : ""}`}>
                     <td className="px-4 py-2">
@@ -138,13 +141,16 @@ export default function InventoryTable({ mode = "overview" }: { mode?: Mode }) {
                     </td>
                     <td className="px-4 py-2 text-gray-600">{p.category}</td>
                     <td className="px-4 py-2 text-right">{formatPrice(p.price)}</td>
-                    <td className="px-4 py-2 text-right font-semibold">{p.stock}</td>
-                    <td className="px-4 py-2 text-right text-gray-600">{formatPrice(p.stock * p.price)}</td>
+                    <td className="px-4 py-2 text-right font-semibold">{digital ? "∞" : p.stock}</td>
+                    <td className="px-4 py-2 text-right text-gray-600">{digital ? "—" : formatPrice(p.stock * p.price)}</td>
                     <td className="px-4 py-2">
                       <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${s.cls}`}>{s.text}</span>
                     </td>
                     {mode === "adjust" && (
                       <td className="px-4 py-2">
+                        {digital ? (
+                          <p className="text-xs text-gray-400 text-right">No stock for downloads</p>
+                        ) : (
                         <div className="flex items-center justify-end gap-1.5">
                           <button onClick={() => adjust(p, -1)} disabled={busyId === p.id || p.stock === 0} className="w-8 h-8 rounded border border-gray-300 hover:bg-gray-50 disabled:opacity-40" aria-label="Remove stock">
                             −
@@ -161,6 +167,7 @@ export default function InventoryTable({ mode = "overview" }: { mode?: Mode }) {
                             +
                           </button>
                         </div>
+                        )}
                       </td>
                     )}
                   </tr>
@@ -173,7 +180,7 @@ export default function InventoryTable({ mode = "overview" }: { mode?: Mode }) {
                   {rows.length} products
                 </td>
                 <td className="px-4 py-2 text-right font-semibold">{totalUnits}</td>
-                <td className="px-4 py-2 text-right font-semibold">{formatPrice(rows.reduce((s, p) => s + p.stock * p.price, 0))}</td>
+                <td className="px-4 py-2 text-right font-semibold">{formatPrice(physical.reduce((s, p) => s + p.stock * p.price, 0))}</td>
                 <td colSpan={mode === "adjust" ? 2 : 1} />
               </tr>
             </tfoot>

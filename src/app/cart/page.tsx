@@ -6,7 +6,13 @@ import { useCart } from "@/lib/cart-context";
 import { formatPrice } from "@/lib/format";
 import { useT } from "@/lib/i18n/client";
 import { fmt } from "@/lib/i18n";
-import type { Product } from "@/lib/types";
+import { isDigital } from "@/lib/product-utils";
+import type { CartItem, Product } from "@/lib/types";
+
+type Row = { item: CartItem; product: Product };
+
+/** Downloads are bought once, whatever the stored quantity says. */
+const qtyOf = ({ item, product }: Row) => (isDigital(product) ? 1 : item.quantity);
 
 export default function CartPage() {
   const { items, updateQuantity, removeItem } = useCart();
@@ -32,9 +38,10 @@ export default function CartPage() {
       const product = products.find((p) => p.id === item.productId);
       return product ? { item, product } : null;
     })
-    .filter((row): row is { item: (typeof items)[number]; product: Product } => row !== null);
+    .filter((row): row is Row => row !== null);
 
-  const subtotal = cartRows.reduce((sum, row) => sum + row.product.price * row.item.quantity, 0);
+  const subtotal = cartRows.reduce((sum, row) => sum + row.product.price * qtyOf(row), 0);
+  const allDigital = cartRows.length > 0 && cartRows.every((row) => isDigital(row.product));
 
   if (cartRows.length === 0) {
     return (
@@ -54,47 +61,64 @@ export default function CartPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 flex flex-col gap-4">
-          {cartRows.map(({ item, product }) => (
-            <div key={product.id} className="flex gap-4 bg-surface border border-border rounded-card p-4">
-              <Link href={`/products/${product.slug}`} className="shrink-0">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={product.images[0]}
-                  alt={product.name}
-                  className="w-20 h-20 object-cover rounded-input"
-                />
-              </Link>
-              <div className="flex-1 min-w-0">
-                <Link href={`/products/${product.slug}`} className="font-medium text-foreground hover:text-primary line-clamp-1">
-                  {product.name}
+          {cartRows.map((row) => {
+            const { item, product } = row;
+            const digital = isDigital(product);
+            const qty = qtyOf(row);
+            return (
+              <div key={product.id} className="flex gap-4 bg-surface border border-border rounded-card p-4">
+                <Link href={`/products/${product.slug}`} className="shrink-0">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={product.images[0]}
+                    alt={product.name}
+                    className="w-20 h-20 object-cover rounded-input"
+                  />
                 </Link>
-                <p className="text-sm text-muted mt-0.5">{fmt(t.cart.each, { price: formatPrice(product.price) })}</p>
+                <div className="flex-1 min-w-0">
+                  <Link href={`/products/${product.slug}`} className="font-medium text-foreground hover:text-primary line-clamp-1">
+                    {product.name}
+                  </Link>
+                  <p className="text-sm text-muted mt-0.5">{fmt(t.cart.each, { price: formatPrice(product.price) })}</p>
+                  {digital && (
+                    <p className="inline-flex items-center gap-1 text-xs font-medium text-primary bg-primary-soft rounded-btn px-2 py-0.5 mt-1">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <path d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2" />
+                      </svg>
+                      {t.cart.digitalNote}
+                    </p>
+                  )}
 
-                <div className="flex items-center gap-3 mt-3">
-                  <select
-                    value={item.quantity}
-                    onChange={(e) => updateQuantity(product.id, Number(e.target.value))}
-                    className="border border-border bg-background text-foreground rounded-input px-2 py-1 text-sm"
-                  >
-                    {Array.from({ length: Math.min(product.stock, 10) }, (_, i) => i + 1).map((n) => (
-                      <option key={n} value={n}>
-                        {n}
-                      </option>
-                    ))}
-                  </select>
-                  <button
-                    onClick={() => removeItem(product.id)}
-                    className="text-sm text-red-600 hover:underline"
-                  >
-                    {t.cart.remove}
-                  </button>
+                  <div className="flex items-center gap-3 mt-3">
+                    {digital ? (
+                      <span className="border border-border text-muted rounded-input px-2 py-1 text-sm">{t.cart.qtyOne}</span>
+                    ) : (
+                      <select
+                        value={item.quantity}
+                        onChange={(e) => updateQuantity(product.id, Number(e.target.value))}
+                        className="border border-border bg-background text-foreground rounded-input px-2 py-1 text-sm"
+                      >
+                        {Array.from({ length: Math.min(product.stock, 10) }, (_, i) => i + 1).map((n) => (
+                          <option key={n} value={n}>
+                            {n}
+                          </option>
+                        ))}
+                      </select>
+                    )}
+                    <button
+                      onClick={() => removeItem(product.id)}
+                      className="text-sm text-red-600 hover:underline"
+                    >
+                      {t.cart.remove}
+                    </button>
+                  </div>
+                </div>
+                <div className="text-end font-semibold text-foreground shrink-0">
+                  {formatPrice(product.price * qty)}
                 </div>
               </div>
-              <div className="text-end font-semibold text-foreground shrink-0">
-                {formatPrice(product.price * item.quantity)}
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         <div className="bg-surface border border-border rounded-card p-5 h-fit">
@@ -105,7 +129,7 @@ export default function CartPage() {
           </div>
           <div className="flex justify-between text-sm mb-4">
             <span className="text-muted">{t.cart.shipping}</span>
-            <span className="font-medium text-green-600">{t.cart.free}</span>
+            <span className="font-medium text-green-600">{allDigital ? t.cart.noShipping : t.cart.free}</span>
           </div>
           <div className="flex justify-between font-bold text-foreground border-t border-border pt-4 mb-4">
             <span>{t.cart.total}</span>

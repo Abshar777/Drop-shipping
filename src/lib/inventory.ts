@@ -1,12 +1,13 @@
 import crypto from "crypto";
 import { readJson, writeJson } from "./storage";
 import { getProducts, saveProducts } from "./products";
+import { DEFAULT_LOW_STOCK_THRESHOLD, isDigital } from "./product-utils";
 import type { InventoryEntry, Product } from "./types";
 
 const LOG_FILE = "inventory-log.json";
 
 /** Products at or below this stock count as "low stock" across the admin. */
-export const LOW_STOCK_THRESHOLD = 5;
+export const LOW_STOCK_THRESHOLD = DEFAULT_LOW_STOCK_THRESHOLD;
 
 export async function getInventoryLog(): Promise<InventoryEntry[]> {
   try {
@@ -38,7 +39,7 @@ export async function adjustStock(changes: StockChange[], reason: string, by: st
   for (const change of changes) {
     if (!Number.isFinite(change.delta) || change.delta === 0) continue;
     const product = products.find((p) => p.id === change.productId);
-    if (!product) continue;
+    if (!product || isDigital(product)) continue; // downloads are never out of stock
     const before = product.stock;
     const after = Math.max(0, before + change.delta);
     if (after === before) continue;

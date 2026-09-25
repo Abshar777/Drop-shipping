@@ -4,13 +4,16 @@ import type { Dictionary } from "@/lib/i18n";
 import { fmt } from "@/lib/i18n";
 import { formatPrice } from "@/lib/format";
 import { descriptionBullets } from "@/lib/html";
+import { discountPercent, isDigital } from "@/lib/product-utils";
+import { productSpecRows } from "@/lib/product-specs";
 import AddToCart from "@/components/AddToCart";
 import ProductCard from "@/components/ProductCard";
 import ProductDescription from "@/components/ProductDescription";
+import ProductVideo from "@/components/ProductVideo";
 
 /**
  * Amazon-style product page: gallery on the left, details and "About this item" in the
- * middle, a buy box on the right. Uses Amazon's fixed palette rather than the store theme.
+ * middle, a buy box on the right. Uses the Amazon fixed palette rather than the store theme.
  */
 export default function AmazonProductPage({
   product,
@@ -21,9 +24,12 @@ export default function AmazonProductPage({
   related: Product[];
   t: Dictionary;
 }) {
-  const discount = product.compareAtPrice ? Math.round(100 - (product.price / product.compareAtPrice) * 100) : 0;
+  const discount = discountPercent(product);
   const bullets = descriptionBullets(product.description);
   const stars = Math.round(product.rating);
+  const digital = isDigital(product);
+  const specs = productSpecRows(product, t);
+  const available = digital || product.stock > 0;
 
   return (
     <div
@@ -56,6 +62,7 @@ export default function AmazonProductPage({
           {/* Details */}
           <div className="md:col-span-4">
             <h1 className="text-2xl leading-snug">{product.name}</h1>
+            {product.brand && <p className="text-sm text-[#007185]">Brand: {product.brand}</p>}
             <Link
               href={`/products?category=${encodeURIComponent(product.categoryId ?? product.category)}`}
               className="text-sm text-[#007185] hover:text-[#C7511F] hover:underline"
@@ -69,6 +76,11 @@ export default function AmazonProductPage({
               </span>
               <span className="text-[#007185]">{product.reviewCount} ratings</span>
             </div>
+            {digital && (
+              <span className="inline-flex items-center gap-1 mt-2 text-xs font-bold text-[#007600] bg-[#e8f5e9] border border-[#c8e6c9] rounded px-2 py-0.5">
+                ⬇ {t.product.digital}
+              </span>
+            )}
 
             <hr className="my-3 border-[#e7e7e7]" />
 
@@ -95,22 +107,47 @@ export default function AmazonProductPage({
             ) : (
               <p className="text-sm text-[#565959]">No details added yet.</p>
             )}
+
+            {specs.length > 0 && (
+              <>
+                <hr className="my-3 border-[#e7e7e7]" />
+                <h2 className="font-bold text-base mb-1.5">{t.product.details}</h2>
+                <table className="w-full text-sm border border-[#e7e7e7]">
+                  <tbody>
+                    {specs.map((row) => (
+                      <tr key={row.label} className="border-b border-[#e7e7e7] last:border-b-0">
+                        <th className="text-start font-bold bg-[#f7f7f7] px-3 py-1.5 w-2/5 align-top">{row.label}</th>
+                        <td className="px-3 py-1.5">{row.value}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </>
+            )}
           </div>
 
           {/* Buy box */}
           <div className="md:col-span-3">
             <div className="border border-[#d5d9d9] rounded-lg p-4 text-sm">
               <div className="text-3xl mb-1">{formatPrice(product.price)}</div>
-              <p className="text-[#007185]">FREE delivery</p>
-              <p className={`text-lg my-2 ${product.stock > 0 ? "text-[#007600]" : "text-[#CC0C39]"}`}>
-                {product.stock > 0 ? "In stock" : t.product.outOfStock}
+              <p className="text-[#007185]">
+                {digital ? t.product.instantDownload : product.shippingRequired === false ? t.product.noShipping : "FREE delivery"}
               </p>
-              <AddToCart productId={product.id} stock={product.stock} variant="amazon" />
+              <p className={`text-lg my-2 ${available ? "text-[#007600]" : "text-[#CC0C39]"}`}>
+                {digital ? t.product.alwaysAvailable : product.stock > 0 ? "In stock" : t.product.outOfStock}
+              </p>
+              <AddToCart productId={product.id} stock={product.stock} variant="amazon" digital={digital} />
               <div className="mt-3 text-xs text-[#565959] space-y-0.5">
                 <p>🔒 Secure transaction</p>
-                <p>
-                  Ships from <span className="text-[#0F1111]">anyitems.in</span>
-                </p>
+                {digital ? (
+                  <p>
+                    Delivered by <span className="text-[#0F1111]">anyitems.in</span> as a download
+                  </p>
+                ) : (
+                  <p>
+                    Ships from <span className="text-[#0F1111]">anyitems.in</span>
+                  </p>
+                )}
                 <p>
                   Sold by <span className="text-[#0F1111]">anyitems.in</span>
                 </p>
@@ -123,6 +160,13 @@ export default function AmazonProductPage({
           <h2 className="text-lg font-bold mb-2">Product description</h2>
           <ProductDescription text={product.description} className="text-sm text-[#333] leading-relaxed" />
         </section>
+
+        {product.videoUrl && (
+          <section className="mt-8 max-w-4xl">
+            <h2 className="text-lg font-bold mb-2">{t.product.video}</h2>
+            <ProductVideo url={product.videoUrl} className="rounded-lg" />
+          </section>
+        )}
 
         {related.length > 0 && (
           <section className="mt-12">

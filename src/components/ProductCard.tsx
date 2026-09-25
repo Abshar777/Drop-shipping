@@ -1,11 +1,15 @@
+"use client";
+
 import Link from "next/link";
 import type { Product } from "@/lib/types";
 import { formatPrice } from "@/lib/format";
+import { discountPercent, isDigital } from "@/lib/product-utils";
+import { useT } from "@/lib/i18n/client";
 
 export default function ProductCard({ product }: { product: Product }) {
-  const discount = product.compareAtPrice
-    ? Math.round(100 - (product.price / product.compareAtPrice) * 100)
-    : 0;
+  const t = useT();
+  const discount = discountPercent(product);
+  const digital = isDigital(product);
 
   return (
     <Link
@@ -24,9 +28,17 @@ export default function ProductCard({ product }: { product: Product }) {
             -{discount}%
           </span>
         )}
+        {digital && (
+          <span className="absolute top-2 end-2 inline-flex items-center gap-1 bg-surface/95 text-primary text-[11px] font-semibold px-2 py-1 rounded-btn shadow-sm">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2" />
+            </svg>
+            {t.product.digital}
+          </span>
+        )}
       </div>
       <div className="p-3">
-        <p className="text-xs text-muted">{product.category}</p>
+        <p className="text-xs text-muted truncate">{product.brand ? `${product.brand} · ${product.category}` : product.category}</p>
         <h3 className="text-sm font-medium text-foreground line-clamp-2 mt-0.5 min-h-[2.5rem]">
           {product.name}
         </h3>
@@ -42,6 +54,11 @@ export default function ProductCard({ product }: { product: Product }) {
             </span>
           )}
         </div>
+        {digital ? (
+          <p className="text-[11px] text-primary mt-1">{t.product.instantDownload}</p>
+        ) : product.stock === 0 ? (
+          <p className="text-[11px] text-red-600 mt-1">{t.product.outOfStock}</p>
+        ) : null}
       </div>
     </Link>
   );
