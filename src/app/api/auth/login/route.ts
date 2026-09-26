@@ -6,6 +6,7 @@ import { createSession } from "@/lib/session-store";
 import { CUSTOMER_SESSION_FILE, CUSTOMER_COOKIE, SESSION_MAX_AGE } from "@/lib/auth-constants";
 import { AUTH_MESSAGES, type AuthErrorCode, type AuthField } from "@/lib/auth-validation";
 import { clientIp, rateLimit } from "@/lib/rate-limit";
+import { storeIsReadOnly } from "@/lib/storage";
 
 const ATTEMPTS_PER_WINDOW = 10;
 const WINDOW_MS = 15 * 60 * 1000;
@@ -23,6 +24,9 @@ function fail(status: number, code: AuthErrorCode, field?: AuthField, headers?: 
 export async function POST(request: Request) {
   const limit = rateLimit(`login:${clientIp(request)}`, ATTEMPTS_PER_WINDOW, WINDOW_MS);
   if (!limit.ok) return fail(429, "too_many_attempts", undefined, { "Retry-After": String(limit.retryAfterSec) });
+
+  // Hosted without a connected database nothing can be saved; say so instead of a vague 500.
+  if (storeIsReadOnly) return fail(503, "store_unavailable");
 
   let body: { email?: unknown; password?: unknown };
   try {

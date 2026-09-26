@@ -145,6 +145,7 @@ const en = {
       invalid_credentials: "The email or password is incorrect.",
       too_many_attempts: "Too many attempts. Please wait a few minutes and try again.",
       server_error: "Something went wrong on our side. Please try again in a moment.",
+      store_unavailable: "Accounts cannot be created yet: the website has no database connected. The site owner needs to connect one in Vercel and redeploy.",
       network: "We couldn't reach the server. Check your connection and try again.",
     },
   },

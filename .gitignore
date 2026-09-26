@@ -42,3 +42,6 @@ next-env.d.ts
 
 # keep the documented template
 !.env.example
+
+# Local notes with test credentials
+*.local.md

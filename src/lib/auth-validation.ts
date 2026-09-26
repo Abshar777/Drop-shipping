@@ -29,7 +29,8 @@ export type AuthErrorCode =
   | "already_signed_in"
   | "invalid_credentials"
   | "too_many_attempts"
-  | "server_error";
+  | "server_error"
+  | "store_unavailable";
 
 export type AuthField = "name" | "email" | "password" | "confirmPassword";
 
@@ -47,6 +48,7 @@ export const AUTH_MESSAGES: Record<AuthErrorCode, string> = {
   invalid_credentials: "The email or password is incorrect.",
   too_many_attempts: "Too many attempts. Please wait a few minutes and try again.",
   server_error: "Something went wrong on our side. Please try again in a moment.",
+  store_unavailable: "Accounts cannot be created yet: the website has no database connected. The site owner needs to connect one in Vercel and redeploy.",
 };
 
 export type SignupInput = { name?: unknown; email?: unknown; password?: unknown; confirmPassword?: unknown };

@@ -6,6 +6,7 @@ import { createSession, getSubjectId } from "@/lib/session-store";
 import { CUSTOMER_SESSION_FILE, CUSTOMER_COOKIE, SESSION_MAX_AGE } from "@/lib/auth-constants";
 import { AUTH_MESSAGES, validateSignup, type AuthErrorCode, type AuthField } from "@/lib/auth-validation";
 import { clientIp, rateLimit } from "@/lib/rate-limit";
+import { storeIsReadOnly } from "@/lib/storage";
 
 const SIGNUPS_PER_WINDOW = 5;
 const WINDOW_MS = 15 * 60 * 1000;
@@ -25,6 +26,9 @@ function fail(status: number, code: AuthErrorCode, field?: AuthField, headers?: 
 export async function POST(request: Request) {
   const limit = rateLimit(`signup:${clientIp(request)}`, SIGNUPS_PER_WINDOW, WINDOW_MS);
   if (!limit.ok) return fail(429, "too_many_attempts", undefined, { "Retry-After": String(limit.retryAfterSec) });
+
+  // Hosted without a connected database nothing can be saved; say so instead of a vague 500.
+  if (storeIsReadOnly) return fail(503, "store_unavailable");
 
   // Someone already signed in should log out before creating another account.
   const cookieStore = await cookies();
